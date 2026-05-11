@@ -1,0 +1,42 @@
+.navbar {
+  background-color: #a09c9c;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 12px 24px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  width: fit-content;
+}
+
+.logoIcon {
+  width: 28px;
+  height: 28px;
+  background-color: #4f46e5;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.logoText {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.logoDark {
+  color: #111827;
+}
+
+.logoAccent {
+  color: #4f46e5;
+}
