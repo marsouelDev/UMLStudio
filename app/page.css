@@ -1,0 +1,15 @@
+/* Conteneur principal : toute la hauteur de l'écran */
+.app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Zone de travail : toolbar + canvas + sidebar côte à côte */
+.app__workspace {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  min-height: 0; /* important pour que flex fonctionne correctement */
+}

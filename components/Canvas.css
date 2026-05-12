@@ -1,0 +1,56 @@
+.canvas {
+  flex: 1;
+  position: relative;
+  background: #f8fafc;
+  overflow: hidden;
+}
+
+.canvas__legend {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: #374151;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.canvas__legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.canvas__legend-line {
+  width: 32px;
+  height: 2px;
+}
+
+.canvas__legend-line--solid {
+  background: #374151;
+}
+
+.canvas__legend-line--dashed {
+  border-top: 2px dashed #6b7280;
+}
+
+.canvas__legend-line--arrow {
+  background: #374151;
+  position: relative;
+}
+
+.canvas__legend-line--arrow::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  top: -4px;
+  border: 5px solid transparent;
+  border-left-color: #374151;
+}
