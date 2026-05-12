@@ -4,12 +4,15 @@ interface AuthCardProps {
   title: string;
   subtitle?: string;
   children: React.ReactNode;
+  italic?: boolean;
 }
 
-export default function AuthCard({ title, subtitle, children }: AuthCardProps) {
+export default function AuthCard({ title, subtitle, children, italic }: AuthCardProps) {
   return (
     <div className={styles.card}>
-      <h1 className={styles.title}>{title}</h1>
+      <h1 className={italic ? `${styles.title} ${styles.titleItalic}` : styles.title}>
+        {title}
+      </h1>
       {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
       {children}
     </div>
