@@ -1,7 +1,9 @@
 "use client";
 
+import Image from "next/image";
+// 1. Importer Link pour la navigation interne fluide
+import Link from "next/link";
 import { styles } from "../styles";
-import LogoSVG from "./logosvg";
 
 const NAV_LINKS = ["Fonctionnalités", "Comment ça marche", "Tarifs", "Documentation"];
 
@@ -9,12 +11,21 @@ export default function Navbar() {
   return (
     <>
       <div style={styles.navbar}>
-        {/* Logo */}
+        {/* Logo et Nom mis à jour */}
         <div style={styles.logoWrap}>
           <div style={styles.logoBox}>
-            <LogoSVG />
+            <Image
+              src="/Logo.jpeg"
+              alt="UMLStudio logo"
+              width={32}
+              height={32}
+              style={{ borderRadius: '6px', objectFit: 'cover' }}
+              priority
+            />
           </div>
-          <span style={styles.logoText}>DiagramFlow</span>
+          <span style={styles.logoText}>
+            UML<span style={{ color: "#150f68", fontWeight: "700" }}>Studio</span>
+          </span>
         </div>
 
         {/* Liens de navigation */}
@@ -26,14 +37,21 @@ export default function Navbar() {
           ))}
         </div>
 
-        {/* Boutons droite */}
+        
         <div style={styles.navRight}>
-          <a href="#" style={styles.btnLogin}>Se connecter</a>
-          <button style={styles.btnStart}>Commencer gratuitement</button>
+  
+          <Link href="/login" style={{ ...styles.btnLogin, textDecoration: "none" }}>
+            Se connecter
+          </Link>
+          
+        
+          <Link href="/register" style={{ textDecoration: "none" }}>
+            <button style={styles.btnStart}>Commencer gratuitement</button>
+          </Link>
         </div>
       </div>
 
-      {/* Barre bleue sous la navbar */}
+  
       <div style={styles.blueBar} />
     </>
   );
