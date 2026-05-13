@@ -1,12 +1,17 @@
-// src/components/sql/ActionBar.tsx
-
+"use client"; 
+import { useState } from "react";
 import { sqlInfo, sqlCode } from "@/data/sqlData";
+// 1. Importer les icônes Bootstrap nécessaires depuis react-icons/bs
+import { BsClipboard, BsDownload, BsFileEarmarkPdf, BsCheckLg } from "react-icons/bs";
 
 export default function ActionBar() {
+  const [copied, setCopied] = useState(false);
 
   // ─── Copy to clipboard ──────────────────────
   const handleCopy = () => {
     navigator.clipboard.writeText(sqlCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000); // Réinitialise l'icône après 2 secondes
   };
 
   // ─── Download .sql file ─────────────────────
@@ -25,7 +30,7 @@ export default function ActionBar() {
 
       {/* Left — engine info */}
       <div className="flex items-center gap-2">
-        <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
+        <span className="w-2 h-2 rounded-full bg-green-500 inline-block animate-pulse" />
         <span className="text-[#888] text-xs font-mono">
           {sqlInfo.engine} — {sqlInfo.label}
         </span>
@@ -34,27 +39,39 @@ export default function ActionBar() {
       {/* Right — action buttons */}
       <div className="flex items-center gap-2">
 
-        {/* Copy */}
+        {/* Copy — Bouton dynamique avec icônes Bootstrap */}
         <button
           onClick={handleCopy}
-          className="text-[10px] font-mono px-3 py-1.5 rounded border border-[#2a2a4a] bg-[#12122a] text-[#888] hover:text-[#ccc] hover:border-[#4444aa] transition-colors"
+          className="flex items-center gap-1.5 text-[10px] font-mono px-3 py-1.5 rounded border border-[#2a2a4a] bg-[#12122a] text-[#888] hover:text-[#ccc] hover:border-[#4444aa] transition-colors cursor-pointer"
         >
-          📋 Copier tout
+          {copied ? (
+            <>
+              <BsCheckLg size={11} className="text-green-400" />
+              <span className="text-green-400">Copié !</span>
+            </>
+          ) : (
+            <>
+              <BsClipboard size={11} />
+              <span>Copier tout</span>
+            </>
+          )}
         </button>
 
-        {/* Download */}
+        {/* Download — Remplacement du symbole ↓ */}
         <button
           onClick={handleDownload}
-          className="text-[10px] font-mono px-3 py-1.5 rounded border border-[#2a2a4a] bg-[#12122a] text-[#888] hover:text-[#ccc] hover:border-[#4444aa] transition-colors"
+          className="flex items-center gap-1.5 text-[10px] font-mono px-3 py-1.5 rounded border border-[#2a2a4a] bg-[#12122a] text-[#888] hover:text-[#ccc] hover:border-[#4444aa] transition-colors cursor-pointer"
         >
-          ↓ Télécharger .sql
+          <BsDownload size={11} />
+          <span>Télécharger .sql</span>
         </button>
 
-        {/* Export PDF — no logic yet, Phase 3 */}
+        {/* Export PDF — Remplacement du symbole ↑ */}
         <button
-          className="text-[10px] font-mono px-3 py-1.5 rounded border border-green-800 bg-green-950 text-green-400 hover:bg-green-900 transition-colors"
+          className="flex items-center gap-1.5 text-[10px] font-mono px-3 py-1.5 rounded border border-green-800 bg-green-950 text-green-400 hover:bg-green-900 transition-colors cursor-pointer"
         >
-          ↑ Exporter PDF
+          <BsFileEarmarkPdf size={11} />
+          <span>Exporter PDF</span>
         </button>
 
       </div>

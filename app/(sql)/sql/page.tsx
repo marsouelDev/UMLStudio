@@ -1,9 +1,9 @@
 
 'use client'
-import MldNavbar from "../components/mld/MldNavbar";
-import ActionBar from "../components/sql/ActionBar";
-import CodeBlock from "../components/sql/CodeBlock";
-import StatsBar from "../components/sql/StatsBar";
+import MldNavbar from "../../components/mld/MldNavbar";
+import ActionBar from "../../components/sql/ActionBar";
+import CodeBlock from "../../components/sql/CodeBlock";
+import StatsBar from "../../components/sql/StatsBar";
 
 
 export default function Home() {

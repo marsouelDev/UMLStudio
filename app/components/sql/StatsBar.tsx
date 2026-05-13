@@ -8,15 +8,16 @@ export default function StatsBar() {
       {sqlStats.map((stat) => (
         <div
           key={stat.label}
-          className="flex-1 bg-[#12122a] border border-[#2a2a4a] rounded px-3 py-2"
+          /* Fond blanc (bg-white) et bordure grise claire (border-gray-200) */
+          className="flex-1 bg-white border border-gray-200 rounded px-3 py-2"
         >
-          {/* Label */}
-          <div className="text-[#666] text-[9px] uppercase tracking-widest mb-1">
+          {/* Label — Gris foncé pour rester lisible sur fond blanc */}
+          <div className="text-gray-500 text-[9px] uppercase tracking-widest mb-1">
             {stat.label}
           </div>
 
-          {/* Value */}
-          <div className="text-[#aaaaee] font-bold text-sm">
+          {/* Value — Changement en noir pur (text-black) */}
+          <div className="text-black font-bold text-sm">
             {stat.value}
           </div>
         </div>
