@@ -1,0 +1,167 @@
+.section {
+  margin-top: 4px;
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 14px 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+.preview {
+  height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px;
+}
+
+.blue {
+  background-color: #dbeafe;
+}
+.green {
+  background-color: #d1fae5;
+}
+.teal {
+  background-color: #e0f2fe;
+}
+
+.previewBox {
+  width: 56px;
+  border: 1.5px solid #94a3b8;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.previewHeader {
+  height: 14px;
+  background-color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.previewHeaderText {
+  font-size: 7px;
+  color: white;
+  font-weight: 600;
+}
+
+.previewBody {
+  height: 36px;
+  background-color: #f8fafc;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.previewLine {
+  height: 2px;
+  background-color: #e2e8f0;
+  border-radius: 1px;
+}
+
+.info {
+  padding: 10px 14px 6px;
+}
+
+.diagramTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 2px 0;
+}
+
+.meta {
+  font-size: 11px;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.tag {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.blueTag {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+.greenTag {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+.tealTag {
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
+
+.openBtn {
+  padding: 5px 16px;
+  background-color: #226bca;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.openBtn:hover {
+  background-color: #4338ca;
+}
+
+.newCard {
+  background-color: #ffffff;
+  border: 2px dashed #121213;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 190px;
+  cursor: pointer;
+  gap: 8px;
+  transition: background-color 0.2s;
+}
+
+.newCard:hover {
+  background-color: #f9fafb;
+}
+
+.plus {
+  font-size: 24px;
+  color: #111111;
+}
+
+.newLabel {
+  font-size: 13px;
+  color: #111111;
+  margin: 0;
+}

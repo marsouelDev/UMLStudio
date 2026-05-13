@@ -1,0 +1,38 @@
+.navbar {
+  background-color: #c2b7b7;
+  border-bottom: 2px solid #fcfcfd;
+  padding: 12px 24px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.logoImage {
+  border-radius: 8px;
+  display: block;
+}
+
+.logoText {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.logoDark {
+  color: #111827;
+}
+
+.logoAccent {
+  color: #4f46e5;
+}
