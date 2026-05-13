@@ -1,10 +1,9 @@
-import "./globals.css";
-import type { Metadata } from "next";
 
+import type { Metadata } from "next";
+import "./globals.css";  
 
 export const metadata: Metadata = {
   title: "UMLStudio",
-  description: "UMLStudio app",
 };
 
 export default function RootLayout({

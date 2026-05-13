@@ -1,56 +1,125 @@
-// src/components/mld/MldNavbar.tsx
+"use client"; // Obligatoire pour gérer les effets onMouseEnter/onMouseLeave
+
+import Image from "next/image";
+import Link from "next/link";
+import { BsDatabase, BsDownload, BsArrowLeft } from "react-icons/bs";
 
 type Tab = "MCD" | "MLD" | "SQL";
-
-type Props = {
-  activeTab: Tab;
-};
-
+type Props = { activeTab: Tab };
 const tabs: Tab[] = ["MCD", "MLD", "SQL"];
 
 export default function MldNavbar({ activeTab }: Props) {
   return (
-    <div className="bg-[#12122a] border-b border-[#2a2a4a] px-4 h-12 flex items-center gap-4">
-
-      <div className="flex items-center gap-2">
-        <div className="w-7 h-7 bg-[#3a3a7a] border border-[#555] rounded flex items-center justify-center text-[#aaa] text-xs">
-          ◈
+    <div style={{
+      backgroundColor: "white",
+      borderBottom: "1px solid #e5e7eb",
+      padding: "0 16px",
+      height: "48px",
+      display: "flex",
+      alignItems: "center",
+      gap: "16px"
+    }}>
+      
+      {/* Logo */}
+      <div style={{display:"flex", alignItems:"center", gap:"8px"}}>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <Image 
+            src="/logo.jpeg" 
+            alt="UMLStudio Logo" 
+            width={28} 
+            height={28} 
+            priority
+          />
         </div>
-        <div className="flex flex-col">
-          <span className="text-[#ccc] font-bold text-sm leading-none">
-            UMLStudio
+        <div style={{display:"flex", flexDirection:"column"}}>
+          <span style={{color:"#111827", fontWeight:"700", fontSize:"14px", lineHeight:"1"}}>
+            UML<span style={{color:"#150f68", fontWeight:"700", fontSize:"14px", lineHeight:"1"}}>Studio</span>
           </span>
-          <span className="text-[#555] text-[9px] leading-none mt-0.5">
-            Système e-commerce
-          </span>
-          <span className="text-[#444] text-[8px] leading-none">
+         
+          <span style={{color:"#4f46e5", fontSize:"9px", lineHeight:"1", display: "flex", alignItems: "center", gap: "4px", marginTop: "1px"}}>
+            <BsDatabase size={10} />
             Modèle Logique de Données
           </span>
         </div>
       </div>
 
-      <div className="w-px h-7 bg-[#2a2a4a] mx-2" />
+      <div style={{width:"1px", height:"28px", backgroundColor:"#e5e7eb", margin:"0 8px"}} />
 
-      <div className="flex items-center gap-1 flex-1 justify-center">
+      {/* Liens de navigation (Tabs) */}
+      <div style={{display:"flex", alignItems:"center", gap:"4px", flex:1, justifyContent:"center"}}>
         {tabs.map((tab) => (
-          <button
+          <Link
             key={tab}
-            className={`px-4 py-1.5 text-xs font-mono rounded border transition-colors ${
-              activeTab === tab
-                ? "bg-[#222244] border-[#4444aa] text-[#aaaaff] font-bold"
-                : "bg-transparent border-transparent text-[#666] hover:text-[#999]"
-            }`}
+            href={`/dashboard/${tab.toLowerCase()}`}
+            style={{
+              padding: "4px 16px",
+              fontSize: "12px",
+              fontFamily: "monospace",
+              borderRadius: "6px",
+              border: activeTab === tab ? "1px solid #4f46e5" : "1px solid #e5e7eb",
+              backgroundColor: activeTab === tab ? "#4f46e5" : "transparent",
+              color: activeTab === tab ? "white" : "#9ca3af",
+              fontWeight: activeTab === tab ? "700" : "400",
+              textDecoration: "none",
+              display: "inline-flex",
+              alignItems: "center"
+            }}
           >
             {tab}
-          </button>
+          </Link>
         ))}
       </div>
 
-      <button className="bg-[#3355cc] border border-[#4466dd] text-[#ddeeff] text-xs font-mono px-3 py-1.5 rounded flex items-center gap-2 hover:bg-[#4466dd] transition-colors">
-        <span>↑</span>
-        <span>Exporter</span>
-      </button>
+      {/* Zone des boutons à droite (Export + Retour) */}
+      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        
+        {/* Bouton Exporter */}
+        <button style={{
+          backgroundColor: "#4f46e5",
+          border: "1px solid #4338ca",
+          color: "white",
+          fontSize: "12px",
+          padding: "6px 12px",
+          borderRadius: "6px",
+          display: "flex",
+          alignItems: "center",
+          gap: "6px",
+          cursor: "pointer"
+        }}>
+          <BsDownload size={14} />
+          <span>Exporter</span>
+        </button>
 
+        {/* Bouton de retour placé à côté du bouton d'export */}
+        <Link 
+          href="/dashboard" 
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "28px",
+            height: "28px",
+            borderRadius: "6px",
+            border: "1px solid #e5e7eb",
+            color: "#4b5563",
+            backgroundColor: "#f9fafb",
+            cursor: "pointer",
+            textDecoration: "none",
+            transition: "background-color 0.2s"
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = "#f3f4f6";
+            e.currentTarget.style.color = "#111827";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = "#f9fafb";
+            e.currentTarget.style.color = "#4b5563";
+          }}
+        >
+          <BsArrowLeft size={16} />
+        </Link>
+
+      </div>
     </div>
   );
 }
