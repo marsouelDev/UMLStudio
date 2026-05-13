@@ -56,7 +56,7 @@ export const tables: Table[] = [
   },
   {
     name: "order_item",
-    meta: "liaison N-N",
+    meta: "",
     columns: [
       { name: "id",         type: "BIGINT",        badges: ["PK"] },
       { name: "order_id",   type: "BIGINT",        badges: ["FK"], fkTarget: "order" },
