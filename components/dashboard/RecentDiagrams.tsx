@@ -1,3 +1,5 @@
+"use client";
+import { useRouter } from "next/navigation";
 import styles from "@/styles/dashboard/recent-diagrams.module.css";
 
 const diagrams = [
@@ -31,6 +33,8 @@ const diagrams = [
 ];
 
 export default function RecentDiagrams() {
+  const router = useRouter();
+
   return (
     <div className={styles.section}>
       <h2 className={styles.title}>Récents</h2>
@@ -68,12 +72,23 @@ export default function RecentDiagrams() {
               <span className={`${styles.tag} ${styles[diagram.tagClass]}`}>
                 {diagram.tag}
               </span>
-              <button className={styles.openBtn}>Ouvrir</button>
+              {/* Ouvrir un diagramme existant → /classe */}
+              <button
+                className={styles.openBtn}
+                onClick={() => router.push('/classe')}
+              >
+                Ouvrir
+              </button>
             </div>
           </div>
         ))}
 
-        <div className={styles.newCard}>
+        {/* Nouveau diagramme de classe */}
+        <div
+          className={styles.newCard}
+          onClick={() => router.push('/classe')}
+          style={{ cursor: 'pointer' }}
+        >
           <span className={styles.plus}>+</span>
           <p className={styles.newLabel}>Nouveau diagramme</p>
         </div>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Divider from "@/components/ui/Divider";
@@ -14,15 +15,13 @@ interface FormData {
 }
 
 export default function LoginForm() {
-  const [formData, setFormData] = useState<FormData>({
-    email: "",
-    password: "",
-  });
+  const router = useRouter();
+  const [formData, setFormData] = useState<FormData>({ email: "", password: "" });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -32,6 +31,7 @@ export default function LoginForm() {
     try {
       console.log("Connexion :", formData);
       // await signIn(formData)
+      router.push('/dashboard');
     } catch {
       setError("Email ou mot de passe incorrect.");
     } finally {
@@ -81,13 +81,10 @@ export default function LoginForm() {
         {isLoading ? "Connexion en cours..." : "Se connecter"}
       </Button>
 
-      {/* Séparateur */}
       <Divider label="ou" />
 
-      {/* Facebook */}
       <FacebookButton label="Continuer avec Facebook" />
 
-      {/* Lien inscription */}
       <p className={styles.registerText}>
         Pas encore de compte ?{" "}
         <Link href="/register" className={styles.registerLink}>

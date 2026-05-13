@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Divider from "@/components/ui/Divider";
@@ -16,6 +17,7 @@ interface FormData {
 }
 
 export default function RegisterForm() {
+   const router = useRouter();
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
     lastName: "",
@@ -35,6 +37,7 @@ export default function RegisterForm() {
     setIsLoading(true);
     try {
       console.log("Inscription :", formData);
+      router.push('/dashboard');
       // await signUp(formData)
     } catch {
       setError("Une erreur est survenue. Veuillez réessayer.");
