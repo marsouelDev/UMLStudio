@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/static-components */
 "use client";
 import { useState } from "react";
-import { Trash2, Plus, ChevronRight, Database } from "lucide-react";
+import { Trash2, Plus, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { UMLClass, UMLAttribute, UMLMethod, UMLRelation } from "../types/uml";
 import "./Siderbar.css";
