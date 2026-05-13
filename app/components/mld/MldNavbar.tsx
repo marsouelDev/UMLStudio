@@ -12,6 +12,11 @@ const tabs: Tab[] = ["MCD", "MLD", "SQL"];
 export default function MldNavbar({ activeTab }: Props) {
   const router = useRouter();
 
+  // Modification : Redirection ciblée vers la racine /export
+  const handleExport = () => {
+    router.push('/export');
+  };
+
   return (
     <div style={{
       backgroundColor: "white",
@@ -73,19 +78,22 @@ export default function MldNavbar({ activeTab }: Props) {
       {/* Actions */}
       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
 
-        {/* Exporter */}
-        <button style={{
-          backgroundColor: "#4f46e5",
-          border: "1px solid #4338ca",
-          color: "white",
-          fontSize: "12px",
-          padding: "6px 12px",
-          borderRadius: "6px",
-          display: "flex",
-          alignItems: "center",
-          gap: "6px",
-          cursor: "pointer",
-        }}>
+        {/* Bouton Exporter lié au nouveau chemin /export */}
+        <button 
+          onClick={handleExport}
+          style={{
+            backgroundColor: "#4f46e5",
+            border: "1px solid #4338ca",
+            color: "white",
+            fontSize: "12px",
+            padding: "6px 12px",
+            borderRadius: "6px",
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            cursor: "pointer",
+          }}
+        >
           <BsDownload size={14} />
           <span>Exporter</span>
         </button>

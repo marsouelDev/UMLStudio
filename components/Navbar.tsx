@@ -1,7 +1,9 @@
-"use client"
+"use client";
+
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Download, Check } from 'lucide-react';
+// 1. Remplacer Lucide par les icônes Bootstrap
+import { BsArrowLeft, BsDownload, BsCheckLg } from "react-icons/bs";
 import './Navbar.css';
 
 interface NavbarProps {
@@ -33,18 +35,27 @@ export function Navbar({ projectName, onProjectNameChange }: NavbarProps) {
       />
 
       <div className="navbar__actions">
+        {/* Bouton Retour */}
         <button
           className="btn btn--secondary"
           onClick={() => router.push('/dashboard')}
         >
-          <ArrowLeft size={14} /> Retour
+          <BsArrowLeft size={14} /> Retour
         </button>
+
+        {/* Bouton Sauvegardé */}
         <button className="btn btn--saved">
-          <Check size={14} /> Sauvegardé
+          <BsCheckLg size={14} /> Sauvegardé
         </button>
-        <button className="btn btn--secondary">
-          <Download size={14} /> Exporter
+
+        {/* 2. Ajout de l'événement onClick pour naviguer vers la page d'exportation */}
+        <button 
+          className="btn btn--secondary"
+          onClick={() => router.push('/export')}
+        >
+          <BsDownload size={14} /> Exporter
         </button>
+
         <div className="navbar__avatar">MN</div>
       </div>
     </header>
