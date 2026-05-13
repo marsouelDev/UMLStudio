@@ -1,0 +1,438 @@
+.appWrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: white;
+  overflow: hidden;
+}
+
+
+.topNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: #2d2d3d;
+  color: white;
+  border-bottom: 1px solid #444;
+  flex-shrink: 0;
+  gap: 20px;
+}
+
+.navLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.logoIcon {
+  font-size: 20px;
+}
+
+.logoText {
+  color: #fff;
+}
+
+.navCenter {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.navTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.navSubtitle {
+  font-size: 11px;
+  color: #aaa;
+}
+
+.navTabs {
+  display: flex;
+  gap: 15px;
+  flex-shrink: 0;
+}
+
+.tab {
+  background: none;
+  border: none;
+  color: #aaa;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.tab:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.btnExporter {
+  padding: 8px 16px;
+  background: var(--primary-blue);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.btnExporter:hover {
+  background: #4a48c4;
+  box-shadow: 0 4px 12px rgba(88, 86, 214, 0.3);
+}
+
+
+.subHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: white;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.subHeaderLeft,
+.subHeaderRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-light);
+}
+
+.subHeaderTitle {
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.icon {
+  font-size: 14px;
+}
+
+.badge {
+  background: #f0f0f0;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-dark);
+}
+
+
+.canvasWrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: white;
+  overflow: auto;
+  border: 2px dashed var(--border-color);
+  margin: 20px;
+  border-radius: 8px;
+}
+
+.canvas {
+  width: 100%;
+  height: 100%;
+  max-width: 800px;
+  background: white;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.08));
+}
+
+.entity {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.entity rect {
+  stroke-width: 2;
+  stroke: white;
+  transition: all 0.3s;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.15));
+}
+
+.entity.blue rect {
+  fill: var(--primary-blue);
+}
+
+.entity.purple rect {
+  fill: var(--primary-purple);
+}
+
+.entity.green rect {
+  fill: var(--primary-green);
+}
+
+.entity.selected rect {
+  stroke-width: 3;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.25));
+}
+
+.entity:hover rect {
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.2));
+}
+
+.entityName {
+  font-size: 11px;
+  font-weight: 700;
+  fill: white;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.entityAttr {
+  font-size: 8px;
+  fill: rgba(255, 255, 255, 0.9);
+  font-weight: 400;
+}
+
+/* ===== RELATIONS ===== */
+.relationshipLine {
+  opacity: 0.8;
+  transition: opacity 0.3s;
+}
+
+.relationshipLine:hover {
+  opacity: 1;
+}
+
+.cardinality {
+  font-size: 9px;
+  font-weight: 600;
+  fill: #333;
+  background: white;
+}
+
+
+.legendInDiagram {
+  opacity: 0.9;
+}
+
+.legendLabel {
+  font-size: 8px;
+  font-weight: 500;
+  fill: var(--text-dark);
+}
+
+
+.bottomStats {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px;
+  background: white;
+  border-top: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.statBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  padding: 16px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  background: white;
+  transition: all 0.3s;
+}
+
+.statBox:hover {
+  border-color: var(--primary-blue);
+  box-shadow: 0 4px 12px rgba(88, 86, 214, 0.1);
+}
+
+.statNumber {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--primary-blue);
+  line-height: 1;
+}
+
+.statText {
+  font-size: 12px;
+  color: var(--text-light);
+  text-align: center;
+  margin-top: 8px;
+  text-transform: capitalize;
+}
+
+
+@media (max-width: 1024px) {
+  .topNav {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .navCenter {
+    flex: none;
+    order: 3;
+    width: 100%;
+  }
+
+  .canvasWrapper {
+    margin: 10px;
+    padding: 10px;
+  }
+
+  .bottomStats {
+    gap: 10px;
+    padding: 15px;
+  }
+
+  .statBox {
+    width: 100px;
+    padding: 12px;
+  }
+
+  .statNumber {
+    font-size: 18px;
+  }
+
+  .statText {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .appWrapper {
+    height: auto;
+  }
+
+  .topNav {
+    padding: 10px 12px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .navCenter {
+    width: 100%;
+  }
+
+  .subHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .canvasWrapper {
+    margin: 8px;
+    padding: 8px;
+    min-height: 300px;
+  }
+
+  .bottomStats {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .statBox {
+    width: 80px;
+    padding: 10px;
+  }
+
+  .statNumber {
+    font-size: 16px;
+  }
+
+  .entityName {
+    font-size: 9px;
+  }
+
+  .entityAttr {
+    font-size: 7px;
+  }
+}
+
+@media (max-width: 480px) {
+  .topNav {
+    padding: 8px;
+  }
+
+  .navTabs {
+    gap: 8px;
+  }
+
+  .tab {
+    font-size: 10px;
+    padding: 3px 6px;
+  }
+
+  .btnExporter {
+    padding: 6px 12px;
+    font-size: 10px;
+  }
+
+  .subHeader {
+    padding: 8px;
+    font-size: 10px;
+  }
+
+  .badge {
+    font-size: 9px;
+    padding: 3px 8px;
+  }
+
+  .canvasWrapper {
+    margin: 4px;
+    padding: 4px;
+    min-height: 250px;
+  }
+
+  .bottomStats {
+    gap: 6px;
+    padding: 10px;
+  }
+
+  .statBox {
+    width: 70px;
+    padding: 8px;
+  }
+
+  .statNumber {
+    font-size: 14px;
+  }
+
+  .statText {
+    font-size: 9px;
+  }
+}
+
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.appWrapper {
+  animation: fadeIn 0.3s ease-out;
+}
