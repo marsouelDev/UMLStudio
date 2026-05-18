@@ -53,6 +53,7 @@ export default function LoginForm() {
           onChange={handleChange}
           required
         />
+        
       </div>
 
       {/* Mot de passe */}

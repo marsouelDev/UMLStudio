@@ -15,7 +15,7 @@ interface SidebarProps {
 }
 
 const uid = () => `id-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-const CLASS_COLORS = ["#6B4EFF", "#0e7490", "#0369a1", "#92400e"];
+const CLASS_COLORS = ["#6B4EFF", "#0e7490", "#0369a1", "#92400e", "yellow"];
 type Tab = "proprietes" | "relations" | "conception";
 
 const CONCEPTION_OPTIONS = [

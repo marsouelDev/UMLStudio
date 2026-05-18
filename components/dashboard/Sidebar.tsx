@@ -17,6 +17,7 @@ const projects = [
   { name: "E-commerce", icon: <BsCart3 size={14} /> },
   { name: "Gestion RH", icon: <BsPeople size={14} /> },
   { name: "Blog CMS",   icon: <BsFileEarmarkText size={14} /> },
+
 ];
 
 export default function Sidebar() {

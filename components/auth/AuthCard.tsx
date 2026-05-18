@@ -1,8 +1,8 @@
 import styles from "@/styles/auth/AuthCard.module.css";
 
 interface AuthCardProps {
-  title: string;
   subtitle?: string;
+  title: string;
   children: React.ReactNode;
   italic?: boolean;
 }

@@ -24,6 +24,13 @@ const TESTIMONIALS = [
     initials: "PT",
     bg: "#2563eb",
   },
+  {
+    text: "\"Le projet est bon \"",
+    name: "Prof. M. KUEDEM",
+    role: "programmation web  · SJI",
+    initials: "PT",
+    bg: "#2563eb",
+  },
 ];
 
 export default function Testimonials() {

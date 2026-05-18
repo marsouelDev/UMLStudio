@@ -81,7 +81,9 @@ export const tables: Table[] = [
     columns: [
       { name: "id",      type: "BIGINT",      badges: ["PK"] },
       { name: "user_id", type: "BIGINT",      badges: ["FK"], fkTarget: "user" },
+      { name: "nom", type: "BIGINT",      badges: ["FK"], fkTarget: "user" },
       { name: "role",    type: "VARCHAR(60)", badges: ["NN"] },
+      { name: "description",    type: "VARCHAR(60)", badges: ["NN"] },
     ],
   },
 ];
