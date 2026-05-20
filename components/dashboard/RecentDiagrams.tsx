@@ -1,7 +1,12 @@
+"use client";
+
+import { useRouter } from "next/navigation";
 import styles from "@/styles/dashboard/recent-diagrams.module.css";
+import "bootstrap-icons/font/bootstrap-icons.css";
 
 const diagrams = [
   {
+    id: "diagram-ecommerce",
     title: "Système e-commerce",
     modified: "Modifié il y a 2h",
     classes: "8 classes",
@@ -11,6 +16,7 @@ const diagrams = [
     label: "User",
   },
   {
+    id: "diagram-rh",
     title: "Gestion des employés",
     modified: "Modifié hier",
     classes: "5 classes",
@@ -20,6 +26,7 @@ const diagrams = [
     label: "Employe",
   },
   {
+    id: "diagram-cms",
     title: "Blog CMS",
     modified: "Modifié il y a 3j",
     classes: "6 classes",
@@ -31,12 +38,14 @@ const diagrams = [
 ];
 
 export default function RecentDiagrams() {
+  const router = useRouter();
+
   return (
     <div className={styles.section}>
       <h2 className={styles.title}>Récents</h2>
       <div className={styles.grid}>
         {diagrams.map((diagram) => (
-          <div key={diagram.title} className={styles.card}>
+          <div key={diagram.id} className={styles.card}>
             <div className={`${styles.preview} ${styles[diagram.color]}`}>
               <div className={styles.previewBox}>
                 <div className={styles.previewHeader}>
@@ -48,6 +57,7 @@ export default function RecentDiagrams() {
                   <div className={styles.previewLine} />
                 </div>
               </div>
+              
               <div className={styles.previewBox}>
                 <div className={styles.previewHeader}>
                   <span className={styles.previewHeaderText}>Classe</span>
@@ -68,13 +78,22 @@ export default function RecentDiagrams() {
               <span className={`${styles.tag} ${styles[diagram.tagClass]}`}>
                 {diagram.tag}
               </span>
-              <button className={styles.openBtn}>Ouvrir</button>
+              <button 
+                className={styles.openBtn}
+                onClick={() => router.push('/classe')}
+              >
+                <i className="bi bi-folder2-open me-1"></i> Ouvrir
+              </button>
             </div>
           </div>
         ))}
 
-        <div className={styles.newCard}>
-          <span className={styles.plus}>+</span>
+        <div 
+          className={styles.newCard}
+          onClick={() => router.push('/classe')}
+          style={{ cursor: 'pointer' }}
+        >
+          <i className={`bi bi-plus-lg ${styles.plus}`}></i>
           <p className={styles.newLabel}>Nouveau diagramme</p>
         </div>
       </div>

@@ -1,0 +1,66 @@
+.canvas {
+  flex: 1;
+  position: relative;
+  background: #f8fafc;
+  overflow: hidden;
+}
+
+.canvas .react-flow__controls {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+.canvas .react-flow__controls-button {
+  background: white;
+  border: none;
+  border-bottom: 1px solid #f3f4f6;
+  width: 32px;
+  height: 32px;
+  color: #374151;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.canvas .react-flow__controls-button:last-child {
+  border-bottom: none;
+}
+
+.canvas .react-flow__controls-button:hover {
+  background: #f5f3ff;
+  color: #6B4EFF;
+}
+
+.canvas .react-flow__controls-button svg {
+  fill: currentColor;
+  width: 14px;
+  height: 14px;
+}
+
+
+.canvas .react-flow__minimap {
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+
+.canvas .react-flow__attribution {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 2px 6px;
+}
+
+.canvas .react-flow__attribution a {
+  color: #d1d5db !important;
+  font-size: 10px !important;
+  text-decoration: none !important;
+  pointer-events: none;
+}
+
+
+.canvas__legend {
+  display: none; 
+}

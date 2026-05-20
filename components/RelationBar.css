@@ -1,0 +1,49 @@
+.relation-bar {
+  height: 44px;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.relation-bar__zoom {
+  font-size: 13px;
+  color: #6b7280;
+  margin-right: 8px;
+}
+
+.relation-bar__types {
+  display: flex;
+  gap: 4px;
+  margin-right: auto;
+}
+
+.relation-bar__btn {
+  padding: 5px 14px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 13px;
+  cursor: pointer;
+  color: #374151;
+}
+
+.relation-bar__btn--active {
+  background: #ede9fe;
+  color: #6B4EFF;
+  font-weight: 600;
+}
+
+.relation-bar__add {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 6px;
+  background: #6B4EFF;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}

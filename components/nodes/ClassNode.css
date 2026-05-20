@@ -1,0 +1,77 @@
+.class-node {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  min-width: 180px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color 0.15s ease;
+}
+
+.class-node--selected {
+  box-shadow: 0 4px 16px rgba(107, 78, 255, 0.2);
+}
+
+.class-node__handle {
+  width: 8px !important;
+  height: 8px !important;
+  background: #6B4EFF !important;
+  border: 2px solid white !important;
+}
+
+.class-node__header {
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.class-node__stereotype {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.class-node__name {
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+}
+
+.class-node__section {
+  padding: 6px 10px;
+  min-height: 28px;
+}
+
+.class-node__divider {
+  height: 1px;
+  background: #e5e7eb;
+}
+
+.class-node__row {
+  display: flex;
+  font-size: 11px;
+  line-height: 1.6;
+  gap: 2px;
+}
+
+.class-node__visibility {
+  color: #ef4444;
+  font-weight: 600;
+  width: 10px;
+}
+
+.class-node__member-name {
+  color: #111827;
+}
+
+.class-node__member-type {
+  color: #6b7280;
+}
+
+.class-node__empty {
+  font-size: 10px;
+  color: #d1d5db;
+  font-style: italic;
+}
