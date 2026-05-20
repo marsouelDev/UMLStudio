@@ -1,0 +1,126 @@
+/* src/components/SaveModal.css */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.15s ease;
+}
+
+.modal {
+  background: white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  animation: slideUp 0.2s ease;
+}
+
+.modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 0;
+}
+
+.modal__title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.modal__close {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #9ca3af;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.modal__close:hover {
+  color: #374151;
+  background: #f3f4f6;
+}
+
+.modal__body {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.modal__label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.modal__input {
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.15s;
+  color:#111827
+}
+
+.modal__input:focus {
+  border-color: #6B4EFF;
+  box-shadow: 0 0 0 3px rgba(107, 78, 255, 0.1);
+}
+
+.modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 0 24px 20px;
+}
+
+.modal__btn-cancel {
+  padding: 8px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  font-size: 13px;
+  color: #374151;
+  cursor: pointer;
+}
+
+.modal__btn-cancel:hover { background: #f9fafb; }
+
+.modal__btn-save {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #6B4EFF;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.modal__btn-save:hover:not(:disabled) { background: #5b3fe0; }
+.modal__btn-save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0 } to { opacity: 1 }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(10px); opacity: 0 }
+  to   { transform: translateY(0);    opacity: 1 }
+}
