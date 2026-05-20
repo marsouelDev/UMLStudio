@@ -373,3 +373,85 @@ npx prisma db push --force-reset
 ---
 
 *Dernière mise à jour : Mai 2026*
+
+
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Project {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  classes   UMLClass[]
+  relations UMLRelation[]
+}
+
+model UMLClass {
+  id         String   @id @default(cuid())
+  name       String
+  stereotype String?
+  color      String   @default("#6B4EFF")
+  positionX  Float    @default(0)
+  positionY  Float    @default(0)
+  projectId  String
+
+  project    Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  attributes UMLAttribute[]
+  methods    UMLMethod[]
+}
+
+model UMLAttribute {
+  id         String   @id @default(cuid())
+  name       String
+  type       String
+  visibility String   @default("private")
+  classId    String
+
+  class      UMLClass @relation(fields: [classId], references: [id], onDelete: Cascade)
+}
+
+model UMLMethod {
+  id         String   @id @default(cuid())
+  name       String
+  returnType String
+  visibility String   @default("public")
+  classId    String
+
+  class      UMLClass @relation(fields: [classId], references: [id], onDelete: Cascade)
+}
+
+model UMLRelation {
+  id          String  @id @default(cuid())
+  type        String
+  name        String?
+  sourceLabel String?
+  targetLabel String?
+  sourceId    String
+  targetId    String
+  projectId   String
+
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+
+
+
+User
+ └── Project
+      └── Diagram
+           ├── UmlClass
+           │     ├── UmlAttribute
+           │     └── UmlMethod
+           │              └── UmlParameter
+           │
+           ├── UmlRelation
+           │
+           └── Export

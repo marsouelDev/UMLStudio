@@ -1,64 +1,234 @@
+// prisma/schema.prisma
+
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../generated/client"
 }
 
 datasource db {
   provider = "sqlite"
 }
 
+// ======================================================
+// ENUMS
+// ======================================================
+
+enum ClassType {
+  class
+  abstract
+  interface
+}
+
+enum Visibilite {
+  public
+  private
+  protected
+}
+
+enum RelationType {
+  association
+  aggregation
+  composition
+  heritage
+  implementation
+}
+
+enum ExportFormat {
+  png
+  jpg
+  svg
+  pdf
+  json
+}
+
+// ======================================================
+// USER
+// ======================================================
+
+model User {
+  id         Int      @id @default(autoincrement())
+  nom        String
+  prenom     String
+  email      String   @unique
+  password   String
+  avatar     String?
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  projects   Project[]
+  diagrams   Diagram[]
+  exports    Export[]
+
+  @@map("users")
+}
+
+// ======================================================
+// PROJECT
+// ======================================================
+
 model Project {
-  id        String   @id @default(cuid())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  nom         String
+  description String?
+  couleur     String   @default("#4f46e5")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
-  classes   UMLClass[]
-  relations UMLRelation[]
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  diagrams    Diagram[]
+
+  @@map("projects")
 }
 
-model UMLClass {
-  id         String   @id @default(cuid())
-  name       String
-  stereotype String?
-  color      String   @default("#6B4EFF")
-  positionX  Float    @default(0)
-  positionY  Float    @default(0)
-  projectId  String
+// ======================================================
+// DIAGRAM
+// ======================================================
 
-  project    Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  attributes UMLAttribute[]
-  methods    UMLMethod[]
+model Diagram {
+  id          Int      @id @default(autoincrement())
+  projectId   Int      @map("project_id")
+  userId      Int      @map("user_id")
+  titre       String
+  dataJson    String   @map("data_json")
+  thumbnail   String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  project     Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  classes     UmlClass[]
+  relations   UmlRelation[]
+  exports     Export[]
+
+  @@map("diagrams")
 }
 
-model UMLAttribute {
-  id         String   @id @default(cuid())
-  name       String
-  type       String
-  visibility String   @default("private")
-  classId    String
+// ======================================================
+// UML CLASS
+// ======================================================
 
-  class      UMLClass @relation(fields: [classId], references: [id], onDelete: Cascade)
+model UmlClass {
+  id              Int        @id @default(autoincrement())
+  diagramId       Int        @map("diagram_id")
+  nom             String
+  type            ClassType  @default(class)
+  posX            Float      @default(0) @map("pos_x")
+  posY            Float      @default(0) @map("pos_y")
+  largeur         Float      @default(220)
+  hauteur         Float      @default(160)
+  couleur         String     @default("#6B4EFF")
+  createdAt       DateTime   @default(now()) @map("created_at")
+
+  // Relations
+  diagram         Diagram        @relation(fields: [diagramId], references: [id], onDelete: Cascade)
+  attributes      UmlAttribute[]
+  methods         UmlMethod[]
+  relationsSource UmlRelation[]  @relation("source")
+  relationsCible  UmlRelation[]  @relation("cible")
+
+  @@map("uml_classes")
 }
 
-model UMLMethod {
-  id         String   @id @default(cuid())
-  name       String
-  returnType String
-  visibility String   @default("public")
-  classId    String
+// ======================================================
+// UML ATTRIBUTE
+// ======================================================
 
-  class      UMLClass @relation(fields: [classId], references: [id], onDelete: Cascade)
+model UmlAttribute {
+  id             Int          @id @default(autoincrement())
+  classId        Int          @map("class_id")
+  nom            String
+  typeDonnee     String       @map("type_donnee")
+  visibilite     Visibilite   @default(private)
+  valeurDefaut   String?      @map("valeur_defaut")
+  isStatic       Boolean      @default(false) @map("is_static")
+  ordre          Int          @default(0)
+
+  // Relations
+  umlClass       UmlClass     @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@map("uml_attributes")
 }
 
-model UMLRelation {
-  id          String  @id @default(cuid())
-  type        String
-  name        String?
-  sourceLabel String?
-  targetLabel String?
-  sourceId    String
-  targetId    String
-  projectId   String
+// ======================================================
+// UML METHOD
+// ======================================================
 
-  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+model UmlMethod {
+  id             Int          @id @default(autoincrement())
+  classId        Int          @map("class_id")
+  nom            String
+  typeRetour     String       @map("type_retour")
+  visibilite     Visibilite   @default(public)
+  isStatic       Boolean      @default(false) @map("is_static")
+  isAbstract     Boolean      @default(false) @map("is_abstract")
+  ordre          Int          @default(0)
+
+  // Relations
+  umlClass       UmlClass       @relation(fields: [classId], references: [id], onDelete: Cascade)
+  parameters     UmlParameter[]
+
+  @@map("uml_methods")
+}
+
+// ======================================================
+// UML PARAMETER
+// ======================================================
+
+model UmlParameter {
+  id             Int        @id @default(autoincrement())
+  methodId       Int        @map("method_id")
+  nom            String
+  typeDonnee     String     @map("type_donnee")
+  ordre          Int        @default(0)
+
+  // Relations
+  method         UmlMethod  @relation(fields: [methodId], references: [id], onDelete: Cascade)
+
+  @@map("uml_parameters")
+}
+
+// ======================================================
+// UML RELATION
+// ======================================================
+
+model UmlRelation {
+  id                    Int            @id @default(autoincrement())
+  diagramId             Int            @map("diagram_id")
+  classSourceId         Int            @map("class_source_id")
+  classCibleId          Int            @map("class_cible_id")
+  typeRelation          RelationType   @map("type_relation")
+  label                 String?
+  multipliciteSource    String?        @map("multiplicite_source")
+  multipliciteCible     String?        @map("multiplicite_cible")
+  createdAt             DateTime       @default(now()) @map("created_at")
+
+  // Relations
+  diagram               Diagram        @relation(fields: [diagramId], references: [id], onDelete: Cascade)
+  classSource           UmlClass       @relation("source", fields: [classSourceId], references: [id], onDelete: Cascade)
+  classCible            UmlClass       @relation("cible", fields: [classCibleId], references: [id], onDelete: Cascade)
+
+  @@map("uml_relations")
+}
+
+// ======================================================
+// EXPORT
+// ======================================================
+
+model Export {
+  id             Int            @id @default(autoincrement())
+  diagramId      Int            @map("diagram_id")
+  userId         Int            @map("user_id")
+  format         ExportFormat
+  filePath       String         @map("file_path")
+  createdAt      DateTime       @default(now()) @map("created_at")
+
+  // Relations
+  diagram        Diagram        @relation(fields: [diagramId], references: [id], onDelete: Cascade)
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("exports")
 }
