@@ -19,7 +19,7 @@
 .navbar__logo-icon {
   width: 28px;
   height: 28px;
-  background: #6B4EFF;
+  background: #6b4eff;
   border-radius: 6px;
   color: white;
   display: flex;
@@ -49,13 +49,14 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  color: #000;
 }
 
 .navbar__avatar {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #6B4EFF;
+  background: #6b4eff;
   color: white;
   display: flex;
   align-items: center;
@@ -82,7 +83,10 @@
 }
 
 .btn--saved {
-  border: 1px solid #86efac;
-  background: #f0fdf4;
+  border: 1px solid #2a9953;
+  background: #39bd61;
   color: #16a34a;
+}
+.spin {
+  color: #000;
 }
