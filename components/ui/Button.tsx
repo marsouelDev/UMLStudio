@@ -1,9 +1,9 @@
 import { ButtonHTMLAttributes } from "react";
 import styles from "@/styles/ui/Button.module.css";
 
-export default function Button({ children, ...props }: ButtonHTMLAttributes<HTMLButtonElement>) {
+export default function Button({ children, type = "button", ...props }: ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <button className={styles.button} {...props}>
+    <button type={type} className={styles.button} {...props}>
       {children}
     </button>
   );

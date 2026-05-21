@@ -1,31 +1,31 @@
-// src/app/api/projects/route.ts
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
-// POST /api/projects — crée un projet avec tout son contenu
 export async function POST(request: Request) {
   try {
-    const body = await request.json()
-    const { name, classes, relations } = body
+    const session = await getServerSession(authOptions);
 
-    if (!name || name.trim() === '') {
-      return NextResponse.json(
-        { error: 'Le nom est requis' },
-        { status: 400 }
-      )
+    if (!session?.user) {
+      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
-    // On crée le projet + toutes ses classes + relations en une seule transaction
+    const userId = (session.user as { id: string }).id;
+    const body = await request.json();
+    const { name, classes, relations } = body;
+
+    if (!name || name.trim() === "") {
+      return NextResponse.json({ error: "Le nom est requis" }, { status: 400 });
+    }
+
     const project = await prisma.$transaction(async (tx) => {
-
-      // 1. Crée le projet
       const newProject = await tx.project.create({
-        data: { name: name.trim() }
-      })
+        data: { name: name.trim(), userId },
+      });
 
-      // 2. Crée les classes avec leurs attributs et méthodes
       for (const cls of classes) {
-        await tx.uMLClass.create({
+        await tx.umlClass.create({
           data: {
             id: cls.id,
             name: cls.name,
@@ -35,34 +35,41 @@ export async function POST(request: Request) {
             positionY: cls.position.y,
             projectId: newProject.id,
             attributes: {
-              create: cls.attributes.map((a: {
-                id: string; name: string
-                type: string; visibility: string
-              }) => ({
-                id: a.id,
-                name: a.name,
-                type: a.type,
-                visibility: a.visibility,
-              }))
+              create: cls.attributes.map(
+                (a: {
+                  id: string;
+                  name: string;
+                  type: string;
+                  visibility: string;
+                }) => ({
+                  id: a.id,
+                  name: a.name,
+                  type: a.type,
+                  visibility: a.visibility,
+                }),
+              ),
             },
             methods: {
-              create: cls.methods.map((m: {
-                id: string; name: string
-                returnType: string; visibility: string
-              }) => ({
-                id: m.id,
-                name: m.name,
-                returnType: m.returnType,
-                visibility: m.visibility,
-              }))
-            }
-          }
-        })
+              create: cls.methods.map(
+                (m: {
+                  id: string;
+                  name: string;
+                  returnType: string;
+                  visibility: string;
+                }) => ({
+                  id: m.id,
+                  name: m.name,
+                  returnType: m.returnType,
+                  visibility: m.visibility,
+                }),
+              ),
+            },
+          },
+        });
       }
 
-      // 3. Crée les relations
       for (const rel of relations) {
-        await tx.uMLRelation.create({
+        await tx.umlRelation.create({
           data: {
             id: rel.id,
             type: rel.type,
@@ -72,20 +79,45 @@ export async function POST(request: Request) {
             sourceId: rel.source,
             targetId: rel.target,
             projectId: newProject.id,
-          }
-        })
+          },
+        });
       }
 
-      return newProject
-    })
+      return newProject;
+    });
 
-    return NextResponse.json(project, { status: 201 })
-
+    return NextResponse.json(project, { status: 201 });
   } catch (error) {
-    console.error('POST /api/projects error:', error)
+    console.error("POST /api/projects error:", error);
     return NextResponse.json(
-      { error: 'Erreur lors de la création' },
-      { status: 500 }
-    )
+      { error: "Erreur lors de la création" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function GET() {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    }
+
+    const userId = (session.user as { id: string }).id;
+
+    const projects = await prisma.project.findMany({
+      where: { userId },
+      orderBy: { updatedAt: "desc" },
+      include: { classes: true, relations: true },
+    });
+
+    return NextResponse.json(projects);
+  } catch (error) {
+    console.error("GET /api/projects error:", error);
+    return NextResponse.json(
+      { error: "Erreur lors de la récupération" },
+      { status: 500 },
+    );
   }
 }

@@ -1,37 +1,83 @@
-// src/app/api/projects/[id]/route.ts
 import { NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
-// PUT /api/projects/[id] — met à jour un projet existant
-export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
+// GET /api/projects/:id
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const body = await request.json()
-    const { name, classes, relations } = body
+    const { id } = await params  //  await params
+    const session = await getServerSession(authOptions)
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    }
 
-    await prisma.$transaction(async (tx) => {
+    const userId = (session.user as { id: string }).id
 
-      // 1. Met à jour le nom
-      await tx.project.update({
-        where: { id: params.id },
-        data: { name }
+    const project = await prisma.project.findFirst({
+      where: { id, userId },
+      include: {
+        classes: {
+          include: { attributes: true, methods: true }
+        },
+        relations: true,
+      }
+    })
+
+    if (!project) {
+      return NextResponse.json({ error: 'Projet introuvable' }, { status: 404 })
+    }
+
+    return NextResponse.json(project)
+  } catch (error) {
+    console.error('GET /api/projects/[id] error:', error)
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+  }
+}
+
+// PUT /api/projects/:id
+export async function PUT(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params  // ✅ await params
+    const session = await getServerSession(authOptions)
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    }
+
+    const userId = (session.user as { id: string }).id
+    const { name, classes, relations } = await request.json()
+
+    const existing = await prisma.project.findFirst({
+      where: { id, userId }
+    })
+
+    if (!existing) {
+      return NextResponse.json({ error: 'Projet introuvable' }, { status: 404 })
+    }
+
+    const project = await prisma.$transaction(async (tx) => {
+      await tx.umlRelation.deleteMany({ where: { projectId: id } })
+      await tx.umlAttribute.deleteMany({
+        where: { class: { projectId: id } }
+      })
+      await tx.umlMethod.deleteMany({
+        where: { class: { projectId: id } }
+      })
+      await tx.umlClass.deleteMany({ where: { projectId: id } })
+
+      const updated = await tx.project.update({
+        where: { id },
+        data: { name: name.trim() }
       })
 
-      // 2. Supprime tout l'ancien contenu
-      await tx.uMLRelation.deleteMany({ where: { projectId: params.id } })
-      await tx.uMLAttribute.deleteMany({
-        where: { class: { projectId: params.id } }
-      })
-      await tx.uMLMethod.deleteMany({
-        where: { class: { projectId: params.id } }
-      })
-      await tx.uMLClass.deleteMany({ where: { projectId: params.id } })
-
-      // 3. Recrée tout le contenu mis à jour
       for (const cls of classes) {
-        await tx.uMLClass.create({
+        await tx.umlClass.create({
           data: {
             id: cls.id,
             name: cls.name,
@@ -39,31 +85,23 @@ export async function PUT(
             color: cls.color,
             positionX: cls.position.x,
             positionY: cls.position.y,
-            projectId: params.id,
+            projectId: id,
             attributes: {
               create: cls.attributes.map((a: {
-                id: string; name: string
-                type: string; visibility: string
-              }) => ({
-                id: a.id, name: a.name,
-                type: a.type, visibility: a.visibility,
-              }))
+                id: string; name: string; type: string; visibility: string
+              }) => ({ id: a.id, name: a.name, type: a.type, visibility: a.visibility }))
             },
             methods: {
               create: cls.methods.map((m: {
-                id: string; name: string
-                returnType: string; visibility: string
-              }) => ({
-                id: m.id, name: m.name,
-                returnType: m.returnType, visibility: m.visibility,
-              }))
+                id: string; name: string; returnType: string; visibility: string
+              }) => ({ id: m.id, name: m.name, returnType: m.returnType, visibility: m.visibility }))
             }
           }
         })
       }
 
       for (const rel of relations) {
-        await tx.uMLRelation.create({
+        await tx.umlRelation.create({
           data: {
             id: rel.id,
             type: rel.type,
@@ -72,19 +110,48 @@ export async function PUT(
             targetLabel: rel.targetLabel ?? null,
             sourceId: rel.source,
             targetId: rel.target,
-            projectId: params.id,
+            projectId: id,
           }
         })
       }
+
+      return updated
     })
 
-    return NextResponse.json({ success: true })
-
+    return NextResponse.json(project)
   } catch (error) {
     console.error('PUT /api/projects/[id] error:', error)
-    return NextResponse.json(
-      { error: 'Erreur lors de la mise à jour' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+  }
+}
+
+// DELETE /api/projects/:id
+export async function DELETE(
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params  // ✅ await params
+    const session = await getServerSession(authOptions)
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    }
+
+    const userId = (session.user as { id: string }).id
+
+    const existing = await prisma.project.findFirst({
+      where: { id, userId }
+    })
+
+    if (!existing) {
+      return NextResponse.json({ error: 'Projet introuvable' }, { status: 404 })
+    }
+
+    await prisma.project.delete({ where: { id } })
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('DELETE /api/projects/[id] error:', error)
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }

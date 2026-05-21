@@ -1,36 +1,43 @@
-import Sidebar from "@/components/dashboard/Sidebar";
+"use client";
+
+import { useState } from "react";
+// CORRECTION : "Sidebar" et non "Siderbar"
+import  Sidebar  from "@/components/dashboard/Sidebar"; 
 import Header from "@/components/dashboard/Header";
 import StatsCards from "@/components/dashboard/StatsCards";
 import RecentDiagrams from "@/components/dashboard/RecentDiagrams";
 import styles from "@/styles/dashboard/dashboard.module.css";
-// 1. Importer l'icône de recherche Bootstrap
 import { BsSearch } from "react-icons/bs";
 
 export default function DashboardPage() {
+  const [search, setSearch] = useState("");
+  
   return (
     <div className={styles.layout}>
-      <Sidebar />
-      <div className={styles.main}>
+      {/* CORRECTION : Utilisation de <Sidebar /> */}
+      <Sidebar /> 
+      
+      <main className={styles.main}>
         <Header />
         <div className={styles.content}>
-
           <div className={styles.titleRow}>
             <h1 className={styles.pageTitle}>Mes diagrammes</h1>
             <div className={styles.search}>
-          
               <BsSearch className={styles.searchIcon} size={14} />
               <input
                 type="text"
-                placeholder="Rechercher..."
+                placeholder="Rechercher un projet..."
                 className={styles.searchInput}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
               />
             </div>
           </div>
 
           <StatsCards />
-          <RecentDiagrams />
+          <RecentDiagrams search={search} />
         </div>
-      </div>
+      </main>
     </div>
   );
 }

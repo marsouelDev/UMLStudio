@@ -1,4 +1,4 @@
-// app/(auth)/register/page.tsx
+
 
 import AuthCard from "@/components/auth/AuthCard";
 import RegisterForm from "@/components/auth/RegisterForm";

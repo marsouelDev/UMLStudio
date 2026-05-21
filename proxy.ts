@@ -1,31 +1,41 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-const authRoutes = ["/login", "/register", "/forgot-password"];
-const protectedRoutes = ["/dashboard", "/classe", "/export", "/mld", "/sql"];
-
+// L'erreur demandait explicitement un export nommé "proxy"
 export function proxy(req: NextRequest) {
-  console.log("PROXY:", req.nextUrl.pathname);
-  const token = req.cookies.get("token")?.value;
   const { pathname } = req.nextUrl;
 
-  const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
-  const isProtected = protectedRoutes.some(route => pathname.startsWith(route));
-
-  // Pas connecté et page protégée → redirige vers /
-  if (!token && isProtected) {
-    return NextResponse.redirect(new URL("/", req.url));
+  // 1. Ignorer les fichiers statiques et l'API
+  if (
+    pathname.startsWith("/_next") || 
+    pathname.startsWith("/api") ||
+    pathname.includes("favicon.ico")
+  ) {
+    return NextResponse.next();
   }
 
-  // Déjà connecté et tente d'accéder au login/register → redirige vers dashboard
-  if (token && isAuthRoute) {
+  // 2. Récupération du token
+  const token =
+    req.cookies.get("next-auth.session-token")?.value ||
+    req.cookies.get("__Secure-next-auth.session-token")?.value;
+
+  const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/register");
+
+  // 3. Logique de redirection
+  if (!token && !isAuthPage) {
+    // Non connecté -> Vers login
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
+
+  if (token && isAuthPage) {
+    // Déjà connecté -> Vers dashboard
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
   return NextResponse.next();
 }
 
+// Optionnel : garde le matcher pour optimiser les performances
 export const config = {
-  matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico).*)",
-  ],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };

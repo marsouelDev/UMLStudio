@@ -4,80 +4,87 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Input from "@/components/ui/Input";
-import Button from "@/components/ui/Button";
 import Divider from "@/components/ui/Divider";
 import FacebookButton from "@/components/auth/FacebookButton";
 import styles from "@/styles/auth/RegisterForm.module.css";
 
-interface FormData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-}
-
 export default function RegisterForm() {
-   const router = useRouter();
-  const [formData, setFormData] = useState<FormData>({
+  const router = useRouter();
+  const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     password: "",
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setIsLoading(true);
+    setError("");
+    setLoading(true);
+
     try {
-      console.log("Inscription :", formData);
-      router.push('/dashboard');
-      // await signUp(formData)
-    } catch {
-      setError("Une erreur est survenue. Veuillez réessayer.");
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Une erreur est survenue.");
+      }
+
+      router.push("/login?registered=1");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Une erreur inconnue est survenue.");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className={styles.form}>
+    <form onSubmit={handleSubmit} className={styles.form} noValidate>
       <div className={styles.row}>
         <div className={styles.field}>
-          <label className={styles.label}>Prénom</label>
-          <Input name="firstName" placeholder="Prénom" value={formData.firstName} onChange={handleChange} required />
+          <label className={styles.label} htmlFor="firstName">Prénom</label>
+          <Input id="firstName" name="firstName" placeholder="Prénom"
+            value={formData.firstName} onChange={handleChange} required />
         </div>
         <div className={styles.field}>
-          <label className={styles.label}>Nom</label>
-          <Input name="lastName" placeholder="Nom" value={formData.lastName} onChange={handleChange} required />
+          <label className={styles.label} htmlFor="lastName">Nom</label>
+          <Input id="lastName" name="lastName" placeholder="Nom"
+            value={formData.lastName} onChange={handleChange} required />
         </div>
       </div>
 
       <div className={styles.field}>
-        <label className={styles.label}>Adresse e-mail</label>
-        <Input name="email" type="email" placeholder="votre@email.com" value={formData.email} onChange={handleChange} required />
+        <label className={styles.label} htmlFor="email">Adresse e-mail</label>
+        <Input id="email" name="email" type="email" placeholder="votre@email.com"
+          value={formData.email} onChange={handleChange} required />
       </div>
 
       <div className={styles.field}>
-        <label className={styles.label}>Mot de passe</label>
-        <Input name="password" type="password" placeholder="••••••••" value={formData.password} onChange={handleChange} required />
+        <label className={styles.label} htmlFor="password">Mot de passe</label>
+        <Input id="password" name="password" type="password"
+          placeholder="•••••••• (8 caractères min.)"
+          value={formData.password} onChange={handleChange} minLength={8} required />
       </div>
 
-      {error && <p className={styles.error}>{error}</p>}
+      {error && <p className={styles.error} role="alert">{error}</p>}
 
-      <Button type="submit" disabled={isLoading}>
-        {isLoading ? "Création en cours..." : "Créer mon compte"}
-      </Button>
+      <button type="submit" disabled={loading} className={styles.submitButton}>
+        {loading ? "Création en cours…" : "Créer mon compte"}
+      </button>
 
       <Divider label="ou" />
-
-      <FacebookButton />
+      <FacebookButton label="S'inscrire avec Facebook" />
 
       <p className={styles.loginText}>
         Déjà un compte ?{" "}

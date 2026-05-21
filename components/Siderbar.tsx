@@ -1,12 +1,13 @@
-/* eslint-disable react-hooks/static-components */
 "use client";
+
 import { useState } from "react";
-import { Trash2, Plus, ChevronRight } from "lucide-react";
+import { Trash2, Plus, Layout, Palette, Pipette, ChevronRight, GitBranch, Database, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { UMLClass, UMLAttribute, UMLMethod, UMLRelation } from "../types/uml";
 import "./Siderbar.css";
 
 interface SidebarProps {
+  projectId: string;
   selectedClass: UMLClass | null;
   onUpdateClass: (id: string, updates: Partial<UMLClass>) => void;
   onDeleteClass: (id: string) => void;
@@ -15,16 +16,52 @@ interface SidebarProps {
 }
 
 const uid = () => `id-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-const CLASS_COLORS = ["#6B4EFF", "#0e7490", "#0369a1", "#92400e", "yellow"];
+const PRESET_COLORS = ["#6B4EFF", "#0e7490", "#0369a1", "#b45309", "#047857", "#be123c", "#334155"];
 type Tab = "proprietes" | "relations" | "conception";
 
-const CONCEPTION_OPTIONS = [
-  { id: "mcd", label: "MCD", description: "Modèle Conceptuel des Données", route: "/mcd", color: "#0e7490" },
-  { id: "mld", label: "MLD", description: "Modèle Logique des Données",    route: "/mld", color: "#6B4EFF" },
-  { id: "sql", label: "SQL", description: "Générer le script SQL",          route: "/sql", color: "#0369a1" },
-];
+const ConceptionContent = ({ projectId }: { projectId: string }) => {
+  const router = useRouter();
+  const isSaved = projectId && projectId.length > 0;
+  const options = [
+    { id: "mcd", label: "MCD", desc: "Modèle Conceptuel", route: "/mcd", color: "#0e7490", icon: <Layout size={18} /> },
+    { id: "mld", label: "MLD", desc: "Modèle Logique", route: "/mld", color: "#6B4EFF", icon: <GitBranch size={18} /> },
+    { id: "sql", label: "SQL", desc: "Script DDL SQL", route: "/sql", color: "#0369a1", icon: <Database size={18} /> },
+  ];
+
+  return (
+    <div className="sidebar__content">
+      <div className="sidebar__section">
+        <h3 className="sidebar__section-title">GÉNÉRATION</h3>
+        {!isSaved && (
+          <div className="sidebar__alert">
+            <AlertCircle size={14} />
+            <span>Veuillez sauvegarder pour débloquer l&apos;exportation.</span>
+          </div>
+        )}
+        <div className="conception-grid">
+          {options.map((opt) => (
+            <button
+              key={opt.id}
+              disabled={!isSaved}
+              onClick={() => router.push(`${opt.route}?projectId=${projectId}`)}
+              className={`conception-card ${!isSaved ? "conception-card--disabled" : ""}`}
+            >
+              <div className="conception-card__icon" style={{ backgroundColor: opt.color }}>{opt.icon}</div>
+              <div className="conception-card__info">
+                <span className="conception-card__label">{opt.label}</span>
+                <span className="conception-card__desc">{opt.desc}</span>
+              </div>
+              <ChevronRight size={14} />
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export function Sidebar({
+  projectId,
   selectedClass,
   onUpdateClass,
   onDeleteClass,
@@ -32,143 +69,18 @@ export function Sidebar({
   onUpdateRelation,
 }: SidebarProps) {
   const [activeTab, setActiveTab] = useState<Tab>("proprietes");
-  const [hoveredOption, setHoveredOption] = useState<string | null>(null);
-  const router = useRouter();
 
-  const ConceptionContent = () => (
-    <div className="sidebar__content">
-      <div className="sidebar__section">
-        <h3 className="sidebar__section-title">CONCEPTION</h3>
-        <p style={{ fontSize: "12px", color: "#6b7280", marginBottom: "16px", lineHeight: "1.6" }}>
-          Choisissez le type de modèle à générer depuis votre diagramme UML.
-        </p>
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          {CONCEPTION_OPTIONS.map(option => (
-            <button
-              key={option.id}
-              onClick={() => router.push(option.route)}
-              onMouseEnter={() => setHoveredOption(option.id)}
-              onMouseLeave={() => setHoveredOption(null)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                width: "100%",
-                padding: "12px 14px",
-                background: hoveredOption === option.id ? `${option.color}12` : "#f9fafb",
-                border: `1.5px solid ${hoveredOption === option.id ? option.color : "#e5e7eb"}`,
-                borderRadius: "10px",
-                cursor: "pointer",
-                transition: "all 0.18s ease",
-                textAlign: "left",
-              }}
-            >
-              {/* Badge */}
-              <div style={{
-                width: "38px",
-                height: "38px",
-                borderRadius: "8px",
-                background: option.color,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-                transform: hoveredOption === option.id ? "scale(1.08)" : "scale(1)",
-                transition: "transform 0.18s ease",
-              }}>
-                <span style={{ color: "white", fontSize: "11px", fontWeight: "800", fontFamily: "monospace" }}>
-                  {option.label}
-                </span>
-              </div>
-
-              {/* Texte */}
-              <div style={{ flex: 1 }}>
-                <div style={{
-                  fontSize: "13px",
-                  fontWeight: "700",
-                  color: hoveredOption === option.id ? option.color : "#111827",
-                  transition: "color 0.18s ease",
-                }}>
-                  {option.label}
-                </div>
-                <div style={{ fontSize: "11px", color: "#9ca3af", marginTop: "2px" }}>
-                  {option.description}
-                </div>
-              </div>
-
-              {/* Flèche */}
-              <ChevronRight
-                size={15}
-                color={hoveredOption === option.id ? option.color : "#d1d5db"}
-                style={{
-                  transition: "all 0.18s ease",
-                  transform: hoveredOption === option.id ? "translateX(2px)" : "translateX(0)",
-                }}
-              />
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-
-  const addAttribute = () => {
-    onUpdateClass(selectedClass!.id, {
-      attributes: [...selectedClass!.attributes, { id: uid(), name: "attribut", type: "String", visibility: "private" }],
-    });
+  const handleAddAttribute = () => {
+    if (!selectedClass) return;
+    const newAttr: UMLAttribute = { id: uid(), name: "attribut", type: "String", visibility: "private" };
+    onUpdateClass(selectedClass.id, { attributes: [...selectedClass.attributes, newAttr] });
   };
 
-  const updateAttribute = (attrId: string, field: keyof UMLAttribute, value: string) => {
-    onUpdateClass(selectedClass!.id, {
-      attributes: selectedClass!.attributes.map(a => a.id === attrId ? { ...a, [field]: value } : a),
-    });
+  const handleAddMethod = () => {
+    if (!selectedClass) return;
+    const newMethod: UMLMethod = { id: uid(), name: "methode", returnType: "void", visibility: "public" };
+    onUpdateClass(selectedClass.id, { methods: [...selectedClass.methods, newMethod] });
   };
-
-  const deleteAttribute = (attrId: string) => {
-    onUpdateClass(selectedClass!.id, {
-      attributes: selectedClass!.attributes.filter(a => a.id !== attrId),
-    });
-  };
-
-  const addMethod = () => {
-    onUpdateClass(selectedClass!.id, {
-      methods: [...selectedClass!.methods, { id: uid(), name: "methode", returnType: "void", visibility: "public" }],
-    });
-  };
-
-  const updateMethod = (methodId: string, field: keyof UMLMethod, value: string) => {
-    onUpdateClass(selectedClass!.id, {
-      methods: selectedClass!.methods.map(m => m.id === methodId ? { ...m, [field]: value } : m),
-    });
-  };
-
-  const deleteMethod = (methodId: string) => {
-    onUpdateClass(selectedClass!.id, {
-      methods: selectedClass!.methods.filter(m => m.id !== methodId),
-    });
-  };
-
-  if (!selectedClass) {
-    return (
-      <aside className="sidebar">
-        <div className="sidebar__tabs">
-          {(["proprietes", "relations", "conception"] as Tab[]).map(tab => (
-            <button
-              key={tab}
-              className={`sidebar__tab ${activeTab === tab ? "sidebar__tab--active" : ""}`}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </button>
-          ))}
-        </div>
-        {activeTab === "conception"
-          ? <ConceptionContent />
-          : <div className="sidebar__empty"><p>Sélectionnez une classe pour voir ses propriétés</p></div>
-        }
-      </aside>
-    );
-  }
 
   return (
     <aside className="sidebar">
@@ -176,136 +88,177 @@ export function Sidebar({
         {(["proprietes", "relations", "conception"] as Tab[]).map(tab => (
           <button
             key={tab}
-            onClick={() => setActiveTab(tab)}
             className={`sidebar__tab ${activeTab === tab ? "sidebar__tab--active" : ""}`}
+            onClick={() => setActiveTab(tab)}
           >
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
           </button>
         ))}
       </div>
 
-      {/* ── Propriétés ── */}
-      {activeTab === "proprietes" && (
-        <div className="sidebar__content">
-          <div className="sidebar__section">
-            <h3 className="sidebar__section-title">CLASSE</h3>
-            <div className="sidebar__field">
-              <label className="sidebar__label">Nom</label>
-              <input className="sidebar__input" value={selectedClass.name}
-                onChange={e => onUpdateClass(selectedClass.id, { name: e.target.value })} />
-            </div>
-            <div className="sidebar__field">
-              <label className="sidebar__label">Stéréotype</label>
-              <input className="sidebar__input" value={selectedClass.stereotype ?? ""} placeholder="ex: entity"
-                onChange={e => onUpdateClass(selectedClass.id, { stereotype: e.target.value })} />
-            </div>
-            <div className="sidebar__field">
-              <label className="sidebar__label">Couleur</label>
-              <div className="sidebar__colors">
-                {CLASS_COLORS.map(color => (
-                  <button key={color}
-                    onClick={() => onUpdateClass(selectedClass.id, { color })}
-                    className={`sidebar__color-btn ${selectedClass.color === color ? "sidebar__color-btn--active" : ""}`}
-                    style={{ background: color }}
+      <div className="sidebar__container">
+        {activeTab === "conception" ? (
+          <ConceptionContent projectId={projectId} />
+        ) : !selectedClass ? (
+          <div className="sidebar__empty">
+            <Layout size={48} strokeWidth={1} color="#cbd5e1" />
+            <p>Sélectionnez une classe sur l&apos;espace de travail</p>
+          </div>
+        ) : (
+          <div className="sidebar__content">
+            {activeTab === "proprietes" && (
+              <>
+                <div className="sidebar__section sidebar__section--main">
+                  <h3 className="sidebar__section-title">CONFIGURATION CLASSE</h3>
+                  <input 
+                    className="sidebar__input-hero" 
+                    value={selectedClass.name}
+                    placeholder="Nom de la classe..."
+                    onChange={e => onUpdateClass(selectedClass.id, { name: e.target.value })} 
                   />
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="sidebar__section">
-            <h3 className="sidebar__section-title">ATTRIBUTS</h3>
-            {selectedClass.attributes.map(attr => (
-              <div key={attr.id} className="sidebar__member">
-                <select className="sidebar__select sidebar__select--visibility" value={attr.visibility}
-                  onChange={e => updateAttribute(attr.id, "visibility", e.target.value)}>
-                  <option value="private">–</option>
-                  <option value="public">+</option>
-                  <option value="protected">#</option>
-                </select>
-                <input className="sidebar__input sidebar__input--grow" value={attr.name}
-                  onChange={e => updateAttribute(attr.id, "name", e.target.value)} />
-                <input className="sidebar__input sidebar__input--type" value={attr.type}
-                  onChange={e => updateAttribute(attr.id, "type", e.target.value)} />
-                <button className="sidebar__delete-btn" onClick={() => deleteAttribute(attr.id)}>
-                  <Trash2 size={12} />
-                </button>
-              </div>
-            ))}
-            <button className="sidebar__add-btn" onClick={addAttribute}>
-              <Plus size={13} /> Ajouter un attribut
-            </button>
-          </div>
-
-          <div className="sidebar__section">
-            <h3 className="sidebar__section-title">MÉTHODES</h3>
-            {selectedClass.methods.map(method => (
-              <div key={method.id} className="sidebar__member">
-                <select className="sidebar__select sidebar__select--visibility" value={method.visibility}
-                  onChange={e => updateMethod(method.id, "visibility", e.target.value)}>
-                  <option value="public">+</option>
-                  <option value="private">–</option>
-                  <option value="protected">#</option>
-                </select>
-                <input className="sidebar__input sidebar__input--grow" value={method.name}
-                  onChange={e => updateMethod(method.id, "name", e.target.value)} />
-                <input className="sidebar__input sidebar__input--type" value={method.returnType}
-                  onChange={e => updateMethod(method.id, "returnType", e.target.value)} />
-                <button className="sidebar__delete-btn" onClick={() => deleteMethod(method.id)}>
-                  <Trash2 size={12} />
-                </button>
-              </div>
-            ))}
-            <button className="sidebar__add-btn" onClick={addMethod}>
-              <Plus size={13} /> Ajouter une méthode
-            </button>
-          </div>
-
-          <div className="sidebar__section">
-            <h3 className="sidebar__section-title">RELATIONS</h3>
-            {relations
-              .filter(r => r.source === selectedClass.id || r.target === selectedClass.id)
-              .map(rel => (
-                <div key={rel.id} className="sidebar__relation">
-                  <span className="sidebar__relation-type">{rel.type}</span>
-                  <div className="sidebar__field">
-                    <label className="sidebar__label">Nom</label>
-                    <input className="sidebar__input" value={rel.name ?? ""} placeholder="ex: contient"
-                      onChange={e => onUpdateRelation(rel.id, { name: e.target.value })} />
-                  </div>
-                  <div className="sidebar__relation-cardinalities">
-                    <div className="sidebar__field">
-                      <label className="sidebar__label">Source</label>
-                      <input className="sidebar__input" value={rel.sourceLabel ?? ""} placeholder="1"
-                        onChange={e => onUpdateRelation(rel.id, { sourceLabel: e.target.value })} />
-                    </div>
-                    <div className="sidebar__field">
-                      <label className="sidebar__label">Cible</label>
-                      <input className="sidebar__input" value={rel.targetLabel ?? ""} placeholder="0..*"
-                        onChange={e => onUpdateRelation(rel.id, { targetLabel: e.target.value })} />
+                  
+                  <div className="sidebar__color-picker-container">
+                    <div className="sidebar__label-small"><Palette size={12} /> THÈME VISUEL</div>
+                    <div className="sidebar__color-row">
+                      <div className="custom-color-wrapper">
+                        <Pipette size={14} className="pipette-icon" />
+                        <input 
+                          type="color" 
+                          value={selectedClass.color || "#6B4EFF"}
+                          onChange={e => onUpdateClass(selectedClass.id, { color: e.target.value })}
+                          className="sidebar__input-color-custom"
+                        />
+                      </div>
+                      <div className="color-separator" />
+                      {PRESET_COLORS.map(hex => (
+                        <button
+                          key={hex}
+                          className={`color-dot ${selectedClass.color === hex ? 'is-active' : ''}`}
+                          style={{ backgroundColor: hex }}
+                          onClick={() => onUpdateClass(selectedClass.id, { color: hex })}
+                        />
+                      ))}
                     </div>
                   </div>
                 </div>
-              ))}
+
+                <div className="sidebar__section">
+                  <div className="sidebar__section-header">
+                    <h3 className="sidebar__section-title">ATTRIBUTS</h3>
+                    <button onClick={handleAddAttribute} className="btn-add-minimal"><Plus size={14}/></button>
+                  </div>
+                  <div className="sidebar__list">
+                    {selectedClass.attributes.map((attr) => (
+                      <div key={attr.id} className="sidebar__field-row">
+                        <select 
+                          value={attr.visibility} 
+                          className="sidebar__field-select"
+                          onChange={e => {
+                            const val = e.target.value as UMLAttribute["visibility"];
+                            const newAttrs = selectedClass.attributes.map(a => a.id === attr.id ? {...a, visibility: val} : a);
+                            onUpdateClass(selectedClass.id, { attributes: newAttrs });
+                          }}
+                        >
+                          <option value="public">+</option>
+                          <option value="private">-</option>
+                          <option value="protected">#</option>
+                        </select>
+                        <input 
+                          className="sidebar__field-input name" 
+                          value={attr.name}
+                          onChange={e => {
+                            const newAttrs = selectedClass.attributes.map(a => a.id === attr.id ? {...a, name: e.target.value} : a);
+                            onUpdateClass(selectedClass.id, { attributes: newAttrs });
+                          }}
+                        />
+                        <span className="sidebar__field-sep">:</span>
+                        <input 
+                          className="sidebar__field-input type" 
+                          value={attr.type}
+                          onChange={e => {
+                            const newAttrs = selectedClass.attributes.map(a => a.id === attr.id ? {...a, type: e.target.value} : a);
+                            onUpdateClass(selectedClass.id, { attributes: newAttrs });
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="sidebar__section">
+                  <div className="sidebar__section-header">
+                    <h3 className="sidebar__section-title">MÉTHODES</h3>
+                    <button onClick={handleAddMethod} className="btn-add-minimal"><Plus size={14}/></button>
+                  </div>
+                  <div className="sidebar__list">
+                    {selectedClass.methods.map((m) => (
+                      <div key={m.id} className="sidebar__field-row">
+                        <select 
+                          value={m.visibility} 
+                          className="sidebar__field-select"
+                          onChange={e => {
+                            const val = e.target.value as UMLMethod["visibility"];
+                            const newMethods = selectedClass.methods.map(met => met.id === m.id ? {...met, visibility: val} : met);
+                            onUpdateClass(selectedClass.id, { methods: newMethods });
+                          }}
+                        >
+                          <option value="public">+</option>
+                          <option value="private">-</option>
+                        </select>
+                        <input 
+                          className="sidebar__field-input name" 
+                          value={m.name}
+                          onChange={e => {
+                            const newMethods = selectedClass.methods.map(met => met.id === m.id ? {...met, name: e.target.value} : met);
+                            onUpdateClass(selectedClass.id, { methods: newMethods });
+                          }}
+                        />
+                        <span className="sidebar__field-sep">():</span>
+                        <input 
+                          className="sidebar__field-input type" 
+                          value={m.returnType}
+                          onChange={e => {
+                            const newMethods = selectedClass.methods.map(met => met.id === m.id ? {...met, returnType: e.target.value} : met);
+                            onUpdateClass(selectedClass.id, { methods: newMethods });
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {activeTab === "relations" && (
+              <div className="sidebar__section">
+                <h3 className="sidebar__section-title">RELATIONS & CARDINALITÉS</h3>
+                <div className="sidebar__list">
+                  {relations
+                    .filter(r => r.source === selectedClass.id || r.target === selectedClass.id)
+                    .map(rel => (
+                      <div key={rel.id} className="sidebar__rel-item">
+                        <div className="rel-item__info">
+                          <span className="rel-item__type">{rel.type}</span>
+                          <span className="rel-item__dir">{rel.source === selectedClass.id ? "→ Cible" : "← Source"}</span>
+                        </div>
+                        <input 
+                          placeholder="Cardinalité..."
+                          className="sidebar__field-input full"
+                          value={rel.name ?? ""}
+                          onChange={e => onUpdateRelation(rel.id, { name: e.target.value })}
+                        />
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+
+            <button className="sidebar__delete-btn" onClick={() => onDeleteClass(selectedClass.id)}>
+              <Trash2 size={14} /> Supprimer la classe
+            </button>
           </div>
-
-          <button className="sidebar__delete-class-btn" onClick={() => onDeleteClass(selectedClass.id)}>
-            <Trash2 size={13} /> Supprimer la classe
-          </button>
-        </div>
-      )}
-
-      {/* ── Relations ── */}
-      {activeTab === "relations" && (
-        <div className="sidebar__content">
-          <div className="sidebar__empty">
-            <p>Les relations seront affichées ici</p>
-          </div>
-        </div>
-      )}
-
-      {/* ── Conception ── */}
-      {activeTab === "conception" && <ConceptionContent />}
+        )}
+      </div>
     </aside>
   );
 }

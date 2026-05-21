@@ -1,13 +1,14 @@
+// components/auth/AuthCard.tsx
 import styles from "@/styles/auth/AuthCard.module.css";
 
 interface AuthCardProps {
-  subtitle?: string;
   title: string;
-  children: React.ReactNode;
+  subtitle?: string;
   italic?: boolean;
+  children: React.ReactNode;
 }
 
-export default function AuthCard({ title, subtitle, children, italic }: AuthCardProps) {
+export default function AuthCard({ title, subtitle, italic, children }: AuthCardProps) {
   return (
     <div className={styles.card}>
       <h1 className={italic ? `${styles.title} ${styles.titleItalic}` : styles.title}>

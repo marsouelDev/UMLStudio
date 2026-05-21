@@ -1,5 +1,7 @@
 "use client";
-import { useState, useCallback } from 'react'
+
+import { useState, useCallback, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Navbar } from "@/components/Navbar";
 import { Toolbar } from "@/components/Toolbar";
 import { RelationBar } from "@/components/RelationBar";
@@ -9,88 +11,169 @@ import { useDiagramStore } from "@/store/useDiagramStore";
 import { SaveModal } from '@/components/SaveModal';
 import { Toast } from '@/components/Toast';
 
+// --- Interfaces API pour le typage strict ---
+interface ApiAttribute {
+  id: string;
+  name: string;
+  type: string;
+  visibility: string;
+}
+
+interface ApiMethod {
+  id: string;
+  name: string;
+  returnType: string;
+  visibility: string;
+}
+
+interface ApiClass {
+  id: string;
+  name: string;
+  stereotype: string | null;
+  color: string;
+  positionX: number;
+  positionY: number;
+  attributes: ApiAttribute[];
+  methods: ApiMethod[];
+}
+
+interface ApiRelation {
+  id: string;
+  type: string;
+  name: string | null;
+  sourceLabel: string | null;
+  targetLabel: string | null;
+  sourceId: string;
+  targetId: string;
+}
+
 export default function ClassePage() {
- const {
+  const searchParams = useSearchParams();
+  const urlProjectId = searchParams.get('projectId');
+
+  const {
     classes, relations, selectedClass, selectedClassId,
     activeRelationType, projectId, projectName,
-    addClass, updateClass, deleteClass,
-    addRelation, updateRelation,
+    addClass, updateClass, deleteClass, addRelation, updateRelation,
     setSelectedClassId, setActiveRelationType,
-    setProjectId, setProjectName,
-  } = useDiagramStore()
+    setProjectId, setProjectName, loadProject,
+  } = useDiagramStore();
 
-  const [showModal, setShowModal] = useState(false)
-  const [isSaving, setIsSaving]   = useState(false)
-  const [toast, setToast]         = useState<string | null>(null)
+  const [showModal, setShowModal] = useState(false);
+  const [isSaving, setIsSaving]   = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [toast, setToast]         = useState<string | null>(null);
 
-  // Clic sur "Sauvegarder"
-  function handleSaveClick() {
-    if (projectId === null) {
-      // Première fois → ouvre le modal
-      setShowModal(true)
-    } else {
-      // Déjà sauvegardé → sauvegarde directe
-      handleUpdate()
+  // --- Logique de chargement initial ---
+  useEffect(() => {
+    if (!urlProjectId) return;
+    let cancelled = false;
+
+    async function loadData() {
+      setIsLoading(true);
+      try {
+        const res = await fetch(`/api/projects/${urlProjectId}`);
+        if (!res.ok) throw new Error('Projet introuvable');
+        const project = await res.json();
+        if (cancelled) return;
+
+        setProjectId(project.id);
+        setProjectName(project.name);
+
+        const loadedClasses = project.classes.map((cls: ApiClass) => ({
+          id: cls.id,
+          name: cls.name,
+          stereotype: cls.stereotype ?? '',
+          color: cls.color,
+          position: { x: cls.positionX, y: cls.positionY },
+          attributes: cls.attributes,
+          methods: cls.methods,
+        }));
+
+        const loadedRelations = project.relations.map((rel: ApiRelation) => ({
+          id: rel.id,
+          type: rel.type,
+          name: rel.name ?? '',
+          sourceLabel: rel.sourceLabel ?? '',
+          targetLabel: rel.targetLabel ?? '',
+          source: rel.sourceId,
+          target: rel.targetId,
+        }));
+
+        loadProject(loadedClasses, loadedRelations);
+      } catch (err) {
+        console.error("Load error:", err);
+        setToast('Erreur lors du chargement');
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
     }
-  }
+    loadData();
+    return () => { cancelled = true; };
+  }, [loadProject, setProjectId, setProjectName, urlProjectId]);
 
-  // Première sauvegarde
-  async function handleFirstSave(name: string) {
-    setIsSaving(true)
+  // --- Logique de Sauvegarde (Mise à jour ou Création) ---
+  const handleSaveClick = () => {
+    if (projectId === null) {
+      setShowModal(true);
+    } else {
+      handleUpdate();
+    }
+  };
+
+  const handleFirstSave = async (name: string) => {
+    setIsSaving(true);
     try {
       const res = await fetch('/api/projects', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, classes, relations }),
-      })
-      if (!res.ok) throw new Error(await res.text())
+      });
+      if (!res.ok) throw new Error('Erreur lors de la création');
 
-      const project = await res.json()
-      setProjectId(project.id)
-      setProjectName(name)
-      setShowModal(false)
-      setToast('Diagramme sauvegardé avec succès !')
+      const project = await res.json();
+      setProjectId(project.id);
+      setProjectName(name);
+      setShowModal(false);
+      setToast('Diagramme sauvegardé avec succès !');
     } catch (error) {
-      console.error(error)
-      setToast('Erreur lors de la sauvegarde')
+      console.error(error);
+      setToast('Erreur de sauvegarde');
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
-  // Mises à jour suivantes
-  async function handleUpdate() {
-    if (!projectId) return
-    setIsSaving(true)
+  const handleUpdate = async () => {
+    if (!projectId) return;
+    setIsSaving(true);
     try {
       const res = await fetch(`/api/projects/${projectId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: projectName, classes, relations }),
-      })
-      if (!res.ok) throw new Error(await res.text())
-      setToast('Diagramme mis à jour !')
+      });
+      if (!res.ok) throw new Error('Erreur de mise à jour');
+      setToast('Diagramme mis à jour !');
     } catch (error) {
-      console.error(error)
-      setToast('Erreur lors de la mise à jour')
+      console.error("Save error:", error);
+      setToast('Erreur lors de la mise à jour');
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
-  const handleUpdatePosition = useCallback((
-    id: string,
-    position: { x: number; y: number }
-  ) => {
-    updateClass(id, { position })
-  }, [updateClass])
+  const handleUpdatePosition = useCallback((id: string, position: { x: number; y: number }) => {
+    updateClass(id, { position });
+  }, [updateClass]);
 
+  if (isLoading) return <div className="p-10 text-center">Chargement...</div>;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
       <Navbar
         projectName={projectName || 'Nouveau diagramme'}
-        onProjectNameChange={setProjectName}
+        onProjectNameChange={setProjectName} 
         onSave={handleSaveClick}
         isSaving={isSaving}
         isSaved={projectId !== null}
@@ -104,7 +187,6 @@ export default function ClassePage() {
 
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         <Toolbar />
-
         <Canvas
           classes={classes}
           relations={relations}
@@ -113,8 +195,8 @@ export default function ClassePage() {
           onUpdatePosition={handleUpdatePosition}
           onAddRelation={addRelation}
         />
-
         <Sidebar
+          projectId={projectId || ""}
           selectedClass={selectedClass}
           onUpdateClass={updateClass}
           onDeleteClass={deleteClass}
@@ -122,22 +204,15 @@ export default function ClassePage() {
           onUpdateRelation={updateRelation}
         />
       </div>
-      {/* Modal première sauvegarde */}
-      {showModal && (
-        <SaveModal
-          onSave={handleFirstSave}
-          onClose={() => setShowModal(false)}
-          isSaving={isSaving}
-        />
-      )}
 
-      {/* Notification */}
-      {toast && (
-        <Toast
-          message={toast}
-          onClose={() => setToast(null)}
+      {showModal && (
+        <SaveModal 
+          onSave={handleFirstSave} 
+          onClose={() => setShowModal(false)} 
+          isSaving={isSaving} 
         />
       )}
+      {toast && <Toast message={toast} onClose={() => setToast(null)} />}
     </div>
   );
 }

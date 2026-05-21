@@ -1,21 +1,29 @@
 "use client";
 
+// components/mld/MldNavbar.tsx
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BsDatabase, BsDownload, BsArrowLeft } from "react-icons/bs";
 
 type Tab = "MCD" | "MLD" | "SQL";
-type Props = { activeTab: Tab };
+
+type Props = {
+  activeTab: Tab;
+  projectId: string;  // ← nécessaire pour construire les liens avec ?projectId=
+};
+
 const tabs: Tab[] = ["MCD", "MLD", "SQL"];
 
-export default function MldNavbar({ activeTab }: Props) {
-  const router = useRouter();
+// Mapping tab → chemin de page
+const tabPaths: Record<Tab, string> = {
+  MCD: "/classe",
+  MLD: "/mld",
+  SQL: "/sql",
+};
 
-  // Modification : Redirection ciblée vers la racine /export
-  const handleExport = () => {
-    router.push('/export');
-  };
+export default function MldNavbar({ activeTab, projectId }: Props) {
+  const router = useRouter();
 
   return (
     <div style={{
@@ -30,16 +38,10 @@ export default function MldNavbar({ activeTab }: Props) {
 
       {/* Logo */}
       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-        <Image
-          src="/logo.jpeg"
-          alt="UMLStudio Logo"
-          width={28}
-          height={28}
-          priority
-        />
+        <Image src="/Logo.jpeg" alt="UMLStudio Logo" width={28} height={28} priority />
         <div style={{ display: "flex", flexDirection: "column" }}>
           <span style={{ color: "#111827", fontWeight: "700", fontSize: "14px", lineHeight: "1" }}>
-            UML<span style={{ color: "#150f68", fontWeight: "700", fontSize: "14px" }}>Studio</span>
+            UML<span style={{ color: "#150f68" }}>Studio</span>
           </span>
           <span style={{ color: "#4f46e5", fontSize: "9px", lineHeight: "1", display: "flex", alignItems: "center", gap: "4px", marginTop: "1px" }}>
             <BsDatabase size={10} />
@@ -50,37 +52,39 @@ export default function MldNavbar({ activeTab }: Props) {
 
       <div style={{ width: "1px", height: "28px", backgroundColor: "#e5e7eb", margin: "0 8px" }} />
 
-      {/* Tabs */}
+      {/* Tabs — chaque onglet transporte le projectId dans l'URL */}
       <div style={{ display: "flex", alignItems: "center", gap: "4px", flex: 1, justifyContent: "center" }}>
-        {tabs.map((tab) => (
-          <Link
-            key={tab}
-            href={`/classe/${tab.toLowerCase()}`}
-            style={{
-              padding: "4px 16px",
-              fontSize: "12px",
-              fontFamily: "monospace",
-              borderRadius: "6px",
-              border: activeTab === tab ? "1px solid #4f46e5" : "1px solid #e5e7eb",
-              backgroundColor: activeTab === tab ? "#4f46e5" : "transparent",
-              color: activeTab === tab ? "white" : "#9ca3af",
-              fontWeight: activeTab === tab ? "700" : "400",
-              textDecoration: "none",
-              display: "inline-flex",
-              alignItems: "center",
-            }}
-          >
-            {tab}
-          </Link>
-        ))}
+        {tabs.map((tab) => {
+          const href = `${tabPaths[tab]}?projectId=${projectId}`;
+          const isActive = activeTab === tab;
+          return (
+            <Link
+              key={tab}
+              href={href}
+              style={{
+                padding: "4px 16px",
+                fontSize: "12px",
+                fontFamily: "monospace",
+                borderRadius: "6px",
+                border: isActive ? "1px solid #4f46e5" : "1px solid #e5e7eb",
+                backgroundColor: isActive ? "#4f46e5" : "transparent",
+                color: isActive ? "white" : "#9ca3af",
+                fontWeight: isActive ? "700" : "400",
+                textDecoration: "none",
+                display: "inline-flex",
+                alignItems: "center",
+              }}
+            >
+              {tab}
+            </Link>
+          );
+        })}
       </div>
 
       {/* Actions */}
       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-
-        {/* Bouton Exporter lié au nouveau chemin /export */}
-        <button 
-          onClick={handleExport}
+        <button
+          onClick={() => router.push(`/export?projectId=${projectId}`)}
           style={{
             backgroundColor: "#4f46e5",
             border: "1px solid #4338ca",
@@ -98,9 +102,9 @@ export default function MldNavbar({ activeTab }: Props) {
           <span>Exporter</span>
         </button>
 
-        {/* Retour → /classe */}
+        {/* Retour au diagramme — garde le projectId */}
         <button
-          onClick={() => router.push('/classe')}
+          onClick={() => router.push(`/classe?projectId=${projectId}`)}
           onMouseEnter={e => {
             (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#f3f4f6";
             (e.currentTarget as HTMLButtonElement).style.color = "#111827";
@@ -120,12 +124,10 @@ export default function MldNavbar({ activeTab }: Props) {
             color: "#4b5563",
             backgroundColor: "#f9fafb",
             cursor: "pointer",
-            transition: "background-color 0.2s",
           }}
         >
           <BsArrowLeft size={16} />
         </button>
-
       </div>
     </div>
   );

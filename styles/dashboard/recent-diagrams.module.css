@@ -165,3 +165,20 @@
   color: #111111;
   margin: 0;
 }
+.purple {
+  background-color: #ede9fe;
+}
+
+.orange {
+  background-color: #ffedd5;
+}
+
+.purpleTag {
+  background-color: #ede9fe;
+  color: #6d28d9;
+}
+
+.orangeTag {
+  background-color: #ffedd5;
+  color: #c2410c;
+}

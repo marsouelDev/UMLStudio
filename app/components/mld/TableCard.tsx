@@ -15,7 +15,6 @@ const rowBackground = (badges: BadgeType[]) => {
   return "bg-white";
 };
 
-
 const rowIcon = (badges: BadgeType[]) => {
   if (badges.includes("PK")) {
     return <BsKey size={13} style={{ color: "#ca8a04", transform: "rotate(-45deg)" }} />;
@@ -48,7 +47,6 @@ export default function TableCard({ table }: Props) {
         alignItems: "center"
       }}>
         <div style={{display:"flex", alignItems:"center", gap:"8px"}}>
-          
           <BsTable size={13} style={{ color: "#6366f1", display: "flex" }} />
           <span style={{fontWeight:"700", color:"#111827", fontSize:"13px"}}>{table.name}</span>
         </div>
@@ -59,9 +57,10 @@ export default function TableCard({ table }: Props) {
       </div>
 
       {/* Colonnes */}
-      {table.columns.map((col) => (
+      {table.columns.map((col, idx) => (
         <div
-          key={col.name}
+          // Utilisation d'une clé combinée pour éviter les doublons "nouvelleclasse"
+          key={`${table.name}-col-${col.name}-${idx}`}
           className={rowBackground(col.badges)}
           style={{
             display: "flex",
@@ -71,7 +70,6 @@ export default function TableCard({ table }: Props) {
             borderBottom: "1px solid #f3f4f6"
           }}
         >
-         
           <div style={{ width: "16px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
             {rowIcon(col.badges)}
           </div>
@@ -95,9 +93,9 @@ export default function TableCard({ table }: Props) {
           </span>
 
           <div style={{display:"flex", gap:"3px"}}>
-            {col.badges.map((badge) => (
+            {col.badges.map((badge, bIdx) => (
               <span
-                key={badge}
+                key={`${col.name}-${badge}-${bIdx}`}
                 className={`text-[8px] px-1 py-0.5 rounded font-bold ${badgeStyles[badge]}`}
               >
                 {badge}

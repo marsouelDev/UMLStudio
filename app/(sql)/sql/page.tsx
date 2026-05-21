@@ -1,24 +1,90 @@
+"use client";
+import { Suspense, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useProjectId } from "@/app/hooks/useProjectId";
+import { useMldData }      from "@/app/hooks/useMldData";
+import { useSqlGenerator } from "@/app/hooks/useSqlGenerator";
+import { buildStats }      from "@/data/sqlData";
+import MldNavbar from "@/app/components/mld/MldNavbar";
+import StatsBar  from "@/app/components/sql/StatsBar";
+import ActionBar from "@/app/components/sql/ActionBar";
+import CodeBlock from "@/app/components/sql/CodeBlock";
 
-'use client'
-import MldNavbar from "../../components/mld/MldNavbar";
-import ActionBar from "../../components/sql/ActionBar";
-import CodeBlock from "../../components/sql/CodeBlock";
-import StatsBar from "../../components/sql/StatsBar";
+function SqlContent() {
+  const projectId = useProjectId();
+  const router    = useRouter();
 
+  useEffect(() => {
+    if (!projectId) router.replace("/dashboard");
+  }, [projectId, router]);
 
-export default function Home() {
+  const { data: mldData, status } = useMldData(projectId ?? "");
+  const { sql, stats, loading, error, generate } = useSqlGenerator();
+
+  useEffect(() => {
+    if (status === "success" && mldData) {
+      generate({
+        projectName: mldData.projectName,
+        tables:      mldData.tables,
+        relations:   mldData.relations,
+      });
+    }
+  }, [status, mldData, generate]);
+
+  if (!projectId) return null;
+
+  if (status === "loading") {
+    return (
+      <main className="min-h-screen bg-[#0a0a1a] flex items-center justify-center">
+        <p className="text-[#4444aa] text-sm font-mono animate-pulse">
+          ⟳ Chargement du projet...
+        </p>
+      </main>
+    );
+  }
+
+  if (status === "error") {
+    return (
+      <main className="min-h-screen bg-[#0a0a1a] flex items-center justify-center">
+        <p className="text-red-400 text-sm font-mono">
+          ✗ Projet introuvable ou erreur serveur.
+        </p>
+      </main>
+    );
+  }
+
+  const statItems = buildStats(stats);
+
   return (
-    <main className="min-h-screen bg-[#ffff]">
+    <main className="min-h-screen bg-[#0a0a1a] flex flex-col">
+      <MldNavbar activeTab="SQL" projectId={projectId} />
+      <StatsBar stats={statItems} />
 
-      <MldNavbar activeTab="SQL" />
+      {loading && (
+        <div className="px-4 py-1 text-[10px] font-mono text-[#4444aa] bg-[#0f0f26]">
+          ⟳ Génération SQL en cours...
+        </div>
+      )}
+      {error && (
+        <div className="px-4 py-1 text-[10px] font-mono text-red-400 bg-[#0f0f26]">
+          ✗ {error}
+        </div>
+      )}
 
-      <StatsBar />
-
-      <div className="mx-4 border border-[#2a2a4a] rounded overflow-hidden">
-        <ActionBar />
-        <CodeBlock />
-      </div>
-
+      <ActionBar sql={sql} />
+      <CodeBlock sql={sql} />
     </main>
+  );
+}
+
+export default function SqlPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-[#0a0a1a] flex items-center justify-center">
+        <p className="text-[#555] text-sm font-mono">Initialisation du module SQL...</p>
+      </main>
+    }>
+      <SqlContent />
+    </Suspense>
   );
 }

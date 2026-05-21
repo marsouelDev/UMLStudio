@@ -5,22 +5,31 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "seed": "tsx prisma/seed.ts",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
+    "@auth/prisma-adapter": "^2.11.2",
+    "@libsql/client": "^0.17.3",
     "@prisma/adapter-better-sqlite3": "^7.8.0",
-    "@prisma/client": "^7.8.0",
+    "@prisma/adapter-libsql": "^7.8.0",
+    "@prisma/client": "^5.22.0",
     "@xyflow/react": "^12.10.2",
     "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.10.0",
     "bootstrap-icons": "^1.13.1",
     "clsx": "^2.1.1",
     "dotenv": "^17.4.2",
+    "html-to-image": "^1.11.13",
     "jsonwebtoken": "^9.0.3",
+    "jspdf": "^4.2.1",
     "lucide-react": "^1.14.0",
     "mysql2": "^3.22.3",
     "next": "16.2.6",
+    "next-auth": "^4.24.14",
+    "prisma": "^5.22.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-icons": "^5.6.0",
@@ -29,6 +38,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/bcrypt": "^6.0.0",
+    "@types/bcryptjs": "^2.4.6",
     "@types/better-sqlite3": "^7.6.13",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20",
@@ -36,9 +46,8 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
-    "prisma": "^7.8.0",
     "tailwindcss": "^4",
-    "ts-node": "^10.9.2",
+    "tsx": "^4.22.3",
     "typescript": "^5"
   }
 }

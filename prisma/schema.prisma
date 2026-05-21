@@ -1,67 +1,104 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
-model Project {
-  id        String   @id @default(cuid())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  classes   UMLClass[]
-  relations UMLRelation[]
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
 
 model User {
-  id        String   @id @default(cuid())
-  firstName String
-  lastName  String
-  email     String   @unique
-  password  String
-createdAt DateTime @default(now())
-updatedAt DateTime @updatedAt
+  id        String    @id @default(cuid())
+  firstName String?
+  lastName  String?
+  email     String?   @unique
+  password  String?
+  image     String?
+  name      String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  accounts  Account[]
+  sessions  Session[]
+  projects  Project[]
 }
 
-model UMLClass {
-  id         String   @id @default(cuid())
+model Project {
+  id        String        @id @default(cuid())
+  name      String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  classes   UmlClass[]
+  relations UmlRelation[]
+}
+
+model UmlClass {
+  id         String         @id @default(cuid())
   name       String
   stereotype String?
-  color      String   @default("#6B4EFF")
-  positionX  Float    @default(0)
-  positionY  Float    @default(0)
+  color      String         @default("#6B4EFF")
+  positionX  Float          @default(0)
+  positionY  Float          @default(0)
   projectId  String
-
   project    Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  attributes UMLAttribute[]
-  methods    UMLMethod[]
+  attributes UmlAttribute[]
+  methods    UmlMethod[]
 }
 
-model UMLAttribute {
+model UmlAttribute {
   id         String   @id @default(cuid())
   name       String
   type       String
   visibility String   @default("private")
   classId    String
-
-  class      UMLClass @relation(fields: [classId], references: [id], onDelete: Cascade)
+  class      UmlClass @relation(fields: [classId], references: [id], onDelete: Cascade)
 }
 
-model UMLMethod {
+model UmlMethod {
   id         String   @id @default(cuid())
   name       String
   returnType String
   visibility String   @default("public")
   classId    String
-
-  class      UMLClass @relation(fields: [classId], references: [id], onDelete: Cascade)
+  class      UmlClass @relation(fields: [classId], references: [id], onDelete: Cascade)
 }
 
-model UMLRelation {
+model UmlRelation {
   id          String  @id @default(cuid())
   type        String
   name        String?
@@ -70,6 +107,19 @@ model UMLRelation {
   sourceId    String
   targetId    String
   projectId   String
-
   project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model UmlRelation {
+  id          String   @id @default(cuid())
+  type        String   
+  name        String?
+  // Ajout pour le MCD
+  sourceCard  String?  @default("1,1") 
+  targetCard  String?  @default("0,N") 
+  
+  sourceId    String
+  targetId    String
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }

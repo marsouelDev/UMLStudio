@@ -1,35 +1,49 @@
 import styles from "@/styles/dashboard/stats-cards.module.css";
-
-const stats = [
-  {
-    label: "Nombre de diagramme réalisés",
-    value: "12",
-    sub: "+3 ce mois",
-    color: "green",
-  },
-  {
-    label: "Classes créées",
-    value: "87",
-    sub: "",
-    color: "blue",
-  },
-  {
-    label: "Exports",
-    value: "24",
-    sub: "",
-    color: "pink",
-  },
-];
+import { useStats } from "@/app/hooks/useStats";
+import { BsDiagram3, BsCodeSquare, BsCloudArrowUp } from "react-icons/bs";
 
 export default function StatsCards() {
+  const { stats, isLoading } = useStats();
+
+  const cards = [
+    {
+      label: "Diagrammes réalisés",
+      value: stats?.totalProjects ?? "—",
+      sub: stats?.newThisMonth ? `+${stats.newThisMonth} ce mois` : "",
+      color: "green",
+      icon: <BsDiagram3 size={20} />,
+    },
+    {
+      label: "Classes créées",
+      value: stats?.totalClasses ?? "—",
+      sub: "",
+      color: "blue",
+      icon: <BsCodeSquare size={20} />,
+    },
+    {
+      label: "Exports",
+      value: stats?.totalExports ?? "—",
+      sub: "",
+      color: "pink",
+      icon: <BsCloudArrowUp size={20} />,
+    },
+  ];
+
   return (
     <div className={styles.grid}>
-      {stats.map((stat) => (
+      {cards.map((stat) => (
         <div key={stat.label} className={`${styles.card} ${styles[stat.color]}`}>
+          <div className={styles.iconWrap}>{stat.icon}</div>
           <p className={styles.label}>{stat.label}</p>
           <p className={styles.value}>
-            {stat.value}
-            {stat.sub && <span className={styles.sub}> {stat.sub}</span>}
+            {isLoading ? (
+              <span className={styles.skeleton} />
+            ) : (
+              <>
+                {stat.value}
+                {stat.sub && <span className={styles.sub}> {stat.sub}</span>}
+              </>
+            )}
           </p>
         </div>
       ))}

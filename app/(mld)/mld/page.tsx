@@ -1,19 +1,55 @@
-"use client"
+"use client";
+import { Suspense, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useProjectId } from "@/app/hooks/useProjectId";
+import { useMldData } from "@/app/hooks/useMldData";
+import MldNavbar from "@/app/components/mld/MldNavbar";
+import MldLegend from "@/app/components/mld/MldLegend";
+import TablesGrid from "@/app/components/mld/TablesGrid";
+import RelationsSection from "@/app/components/mld/Relation";
 
-import MldLegend from "../../components/mld/MldLegend";
-import MldNavbar from "../../components/mld/MldNavbar";
-import Relation from "../../components/mld/Relation";
-import TablesGrid from "../../components/mld/TablesGrid";
+function MldContent() {
+  const projectId = useProjectId();
+  const router    = useRouter();
+  const { data, status } = useMldData(projectId ?? "");
 
-export default function Home() {
+  useEffect(() => {
+    if (!projectId) router.replace("/dashboard");
+  }, [projectId, router]);
+
+  if (!projectId) return null;
+
   return (
-    <main style={{backgroundColor:"#f3f4f6", minHeight:"100vh"}}>
-      <MldNavbar activeTab="MLD" />
+    <main className="min-h-screen bg-[#f3f4f6]">
+      <MldNavbar activeTab="MLD" projectId={projectId} />
       <MldLegend />
-      <div style={{padding:"16px"}}>
-        <TablesGrid />
-        <Relation />
+
+      <div className="p-4">
+        {status === "loading" && (
+          <div className="text-gray-400 text-sm text-center mt-20">
+            Chargement du MLD…
+          </div>
+        )}
+        {status === "error" && (
+          <div className="text-red-500 text-sm text-center mt-20">
+            Erreur — projet introuvable.
+          </div>
+        )}
+        {status === "success" && data && (
+          <>
+            <TablesGrid       tables={data.tables} />
+            <RelationsSection relations={data.relations} />
+          </>
+        )}
       </div>
     </main>
+  );
+}
+
+export default function MldPage() {
+  return (
+    <Suspense fallback={null}>
+      <MldContent />
+    </Suspense>
   );
 }
