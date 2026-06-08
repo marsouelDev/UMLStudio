@@ -1,5 +1,4 @@
 "use client";
-// components/mcd/RelationLine.tsx
 import { Entity, Relation } from "@/store/diagramStore";
 
 type Props = { relation: Relation; entities: Entity[] };

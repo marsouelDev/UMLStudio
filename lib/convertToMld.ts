@@ -1,4 +1,3 @@
-// src/lib/convertToMld.ts
 
 import { Table, Column, BadgeType, Relation } from "@/data/mldData";
 

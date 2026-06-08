@@ -1,6 +1,5 @@
 
 "use client";
-// components/mcd/Canvas.tsx
 import { useRef, useCallback, useEffect } from "react";
 import { useDiagram } from "@/store/diagramStore";
 import EntityCard from "./EntityCard";

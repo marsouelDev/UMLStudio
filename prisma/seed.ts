@@ -7,10 +7,10 @@ import { prisma } from "../lib/prisma";
 async function main() {
 
   // ─── Nettoyer la base avant d'insérer ──────────
-  await prisma.uMLRelation.deleteMany();
-  await prisma.uMLAttribute.deleteMany();
-  await prisma.uMLMethod.deleteMany();
-  await prisma.uMLClass.deleteMany();
+  await prisma.umlRelation.deleteMany();
+  await prisma.umlAttribute.deleteMany();
+  await prisma.umlMethod.deleteMany();
+  await prisma.umlClass.deleteMany();
   await prisma.project.deleteMany();
 
   // ─── Créer le projet ───────────────────────────
@@ -137,7 +137,7 @@ async function main() {
   console.log("✅ Projet créé :", project.name);
 
   // ─── Récupérer les IDs des classes créées ──────
-  const classes = await prisma.uMLClass.findMany({
+  const classes = await prisma.umlClass.findMany({
     where: { projectId: project.id },
   });
 
@@ -145,7 +145,7 @@ async function main() {
     classes.find((c) => c.name === name)!;
 
   // ─── Créer les relations ────────────────────────
-  await prisma.uMLRelation.createMany({
+  await prisma.umlRelation.createMany({
     data: [
       {
         type:        "association",

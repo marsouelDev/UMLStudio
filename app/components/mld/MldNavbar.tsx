@@ -1,6 +1,5 @@
 "use client";
 
-// components/mld/MldNavbar.tsx
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";

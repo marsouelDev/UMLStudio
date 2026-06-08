@@ -1,5 +1,4 @@
 "use client";
-// components/mcd/EntityCard.tsx
 import { Entity } from "@/store/diagramStore";
 
 type Props = {

@@ -4,10 +4,9 @@ import { Suspense, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useProjectId } from "@/app/hooks/useProjectId";
 import { useDiagram } from "@/store/diagramStore";
-import Navbar    from "@/components/ui/Navbar";
-// SidePanel supprimé ici
 import Canvas    from "@/components/mcd/canvas";
 import StatsBar  from "@/components/mcd/StatsBar";
+import Navbar from "@/components/Navbar";
 
 // Types UML venant de l'API Project
 interface UmlAttribute {
@@ -86,10 +85,7 @@ function McdContent() {
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", backgroundColor: "#f3f4f6" }}>
       <Navbar projectId={projectId} projectName={projectName} />
       
-      {/* Container principal sans SidePanel */}
       <div style={{ display: "flex", flex: 1, overflow: "hidden", marginTop: 52 }}>
-        
-        {/* Le Canvas prend maintenant toute la largeur disponible */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", position: "relative" }}>
           <Canvas />
           <StatsBar />

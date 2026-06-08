@@ -36,10 +36,7 @@ export default function RegisterForm() {
       });
 
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || "Une erreur est survenue.");
-      }
+      if (!res.ok) throw new Error(data.message || "Une erreur est survenue.");
 
       router.push("/login?registered=1");
     } catch (err) {
@@ -54,27 +51,53 @@ export default function RegisterForm() {
       <div className={styles.row}>
         <div className={styles.field}>
           <label className={styles.label} htmlFor="firstName">Prénom</label>
-          <Input id="firstName" name="firstName" placeholder="Prénom"
-            value={formData.firstName} onChange={handleChange} required />
+          <Input
+            id="firstName"
+            name="firstName"
+            placeholder="Prénom"
+            value={formData.firstName}
+            onChange={handleChange}
+            required
+          />
         </div>
         <div className={styles.field}>
           <label className={styles.label} htmlFor="lastName">Nom</label>
-          <Input id="lastName" name="lastName" placeholder="Nom"
-            value={formData.lastName} onChange={handleChange} required />
+          <Input
+            id="lastName"
+            name="lastName"
+            placeholder="Nom"
+            value={formData.lastName}
+            onChange={handleChange}
+            required
+          />
         </div>
       </div>
 
       <div className={styles.field}>
         <label className={styles.label} htmlFor="email">Adresse e-mail</label>
-        <Input id="email" name="email" type="email" placeholder="votre@email.com"
-          value={formData.email} onChange={handleChange} required />
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          placeholder="votre@email.com"
+          value={formData.email}
+          onChange={handleChange}
+          required
+        />
       </div>
 
       <div className={styles.field}>
         <label className={styles.label} htmlFor="password">Mot de passe</label>
-        <Input id="password" name="password" type="password"
+        <Input
+          id="password"
+          name="password"
+          type="password"
           placeholder="•••••••• (8 caractères min.)"
-          value={formData.password} onChange={handleChange} minLength={8} required />
+          value={formData.password}
+          onChange={handleChange}
+          minLength={8}
+          required
+        />
       </div>
 
       {error && <p className={styles.error} role="alert">{error}</p>}

@@ -7,7 +7,7 @@ export function proxy(req: NextRequest) {
 
   // 1. Ignorer les fichiers statiques et l'API
   if (
-    pathname.startsWith("/_next") || 
+    pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
     pathname.includes("favicon.ico")
   ) {
@@ -19,7 +19,8 @@ export function proxy(req: NextRequest) {
     req.cookies.get("next-auth.session-token")?.value ||
     req.cookies.get("__Secure-next-auth.session-token")?.value;
 
-  const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/register");
+  const isAuthPage =
+    pathname.startsWith("/login") || pathname.startsWith("/register");
 
   // 3. Logique de redirection
   if (!token && !isAuthPage) {

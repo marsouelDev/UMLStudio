@@ -1,6 +1,5 @@
 
 "use client";
-// components/mcd/SidePanel.tsx
 import { useState } from "react";
 import { useDiagram, Attribute } from "@/store/diagramStore";
 import { nanoid } from "nanoid";

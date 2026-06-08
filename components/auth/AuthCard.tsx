@@ -1,4 +1,3 @@
-// components/auth/AuthCard.tsx
 import styles from "@/styles/auth/AuthCard.module.css";
 
 interface AuthCardProps {

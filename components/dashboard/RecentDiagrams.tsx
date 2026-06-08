@@ -44,7 +44,7 @@ export default function RecentDiagrams({ search = "" }: { search?: string }) {
       .finally(() => setLoading(false));
   }, []);
 
-  // ✅ Filtre par recherche
+  //  Filtre par recherche
   const filtered = projects.filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase())
   );

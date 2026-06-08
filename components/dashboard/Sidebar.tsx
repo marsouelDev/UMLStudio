@@ -87,7 +87,7 @@ export default function Sidebar() {
         ) : projects.length === 0 ? (
           <p className={styles.emptyText}>Aucun projet</p>
         ) : (
-          projects.map((project: Project) => ( // ✅ type explicite
+          projects.map((project: Project) => ( //  type explicite
             <button
               key={project.id}
               className={`${styles.projectItem} ${active === project.id ? styles.projectItemActive : ""}`}

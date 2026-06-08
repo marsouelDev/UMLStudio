@@ -90,3 +90,81 @@
 .spin {
   color: #000;
 }
+
+.navbar__logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.navbar__logo-text {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.navbar__logo-dark {
+  color: #1a1a1a;
+}
+
+.navbar__logo-accent {
+  color: #6b4eff;
+}
+
+.navbar__left {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.navbar__back-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  color: #666;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.navbar__back-btn:hover {
+  background: #f5f5f5;
+  border-color: #999;
+  color: #333;
+}
+
+.navbar__back-btn svg {
+  transition: transform 0.2s;
+}
+
+.navbar__back-btn:hover svg {
+  transform: translateX(-2px);
+}
+
+.navbar__logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.navbar__logo-text {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.navbar__logo-dark {
+  color: #1a1a1a;
+}
+
+.navbar__logo-accent {
+  color: #6b4eff;
+}
