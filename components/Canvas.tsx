@@ -1,4 +1,3 @@
-// src/components/Canvas.tsx
 "use client"
 import { useCallback, useMemo, useState, useRef } from 'react';
 import {
@@ -19,6 +18,7 @@ import { ClassNode } from './nodes/ClassNode';
 import { UMLEdge } from './edges/UMLEdge';
 import './Canvas.css';
 
+// ✅ Définis en dehors du composant (référence stable)
 const NODE_TYPES: NodeTypes = { classNode: ClassNode };
 const EDGE_TYPES: EdgeTypes = { umlEdge: UMLEdge };
 
@@ -118,37 +118,62 @@ export function Canvas({
     window.addEventListener('mouseup', onMouseUp);
   }, [legendPos]);
 
+  // ✅ Memoize les nodes
   const nodes: Node[] = useMemo(() =>
-    classes.map(cls => ({
-      id: cls.id,
-      type: 'classNode',
-      position: cls.position,
-      selected: cls.id === selectedClassId,
-      data: { umlClass: cls, onSelect: onSelectClass },
-    })),
+    classes
+      .filter(cls => {
+        if (!cls.position || typeof cls.position.x !== 'number' || typeof cls.position.y !== 'number') {
+          console.warn('⚠️ Classe ignorée (position invalide):', cls.id, cls.position);
+          return false;
+        }
+        return true;
+      })
+      .map(cls => ({
+        id: cls.id,
+        type: 'classNode',
+        position: {
+          x: cls.position.x ?? 0,
+          y: cls.position.y ?? 0,
+        },
+        selected: cls.id === selectedClassId,
+        data: { umlClass: cls, onSelect: onSelectClass },
+      })),
     [classes, selectedClassId, onSelectClass]
   );
 
+  // ✅ Memoize les edges
   const edges: Edge[] = useMemo(() =>
-    relations.map(rel => ({
-      id: rel.id,
-      source: rel.source,
-      target: rel.target,
-      type: 'umlEdge',
-      data: { relation: rel },
-      sourceHandle: null,
-      targetHandle: null,
-      label: rel.sourceLabel && rel.targetLabel
-        ? `${rel.sourceLabel}        ${rel.targetLabel}`
-        : undefined,
-      labelStyle: { fontSize: 11, fill: '#6b7280' },
-      labelBgStyle: { fill: 'transparent' },
-      style: rel.type === 'heritage'
-        ? { strokeDasharray: '6 3', stroke: '#6b7280' }
-        : { stroke: '#374151' },
-    })),
+    relations
+      .filter(rel => {
+        if (!rel.source || !rel.target) {
+          console.warn('⚠️ Relation ignorée:', rel.id);
+          return false;
+        }
+        return true;
+      })
+      .map(rel => ({
+        id: rel.id,
+        source: rel.source,
+        target: rel.target,
+        type: 'umlEdge',
+        data: { 
+          relation: rel,
+          sourceLabel: rel.sourceLabel || '',
+          targetLabel: rel.targetLabel || '',
+          name: rel.name || '',
+        },
+        sourceHandle: null,
+        targetHandle: null,
+        style: rel.type === 'heritage'
+          ? { strokeDasharray: '6 3', stroke: '#6b7280', strokeWidth: 1.5 }
+          : { stroke: '#374151', strokeWidth: 1.5 },
+      })),
     [relations]
   );
+
+  // ✅ Memoize les nodeTypes et edgeTypes
+  const memoNodeTypes = useMemo(() => NODE_TYPES, []);
+  const memoEdgeTypes = useMemo(() => EDGE_TYPES, []);
 
   const onConnect = useCallback((connection: Connection) => {
     if (connection.source && connection.target) {
@@ -169,8 +194,8 @@ export function Canvas({
       <ReactFlow
         nodes={nodes}
         edges={edges}
-        nodeTypes={NODE_TYPES}
-        edgeTypes={EDGE_TYPES}
+        nodeTypes={memoNodeTypes}  // ✅ Utiliser la version memoized
+        edgeTypes={memoEdgeTypes}  // ✅ Utiliser la version memoized
         onConnect={onConnect}
         onNodeDragStop={onNodeDragStop}
         onNodesChange={() => {}}
@@ -203,7 +228,6 @@ export function Canvas({
           userSelect: 'none',
         }}
       >
-        {/* Header — zone de drag */}
         <div
           onMouseDown={onLegendMouseDown}
           style={{
@@ -252,7 +276,6 @@ export function Canvas({
           </button>
         </div>
 
-        {/* Items */}
         <div style={{
           maxHeight: legendExpanded ? '300px' : '0',
           opacity: legendExpanded ? 1 : 0,

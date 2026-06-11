@@ -8,7 +8,7 @@ import MldNavbar from "@/app/components/mld/MldNavbar";
 import Canvas    from "@/components/mcd/canvas";
 import StatsBar  from "@/components/mcd/StatsBar";
 
-// Types UML venant de l'API Project
+// ✅ Types alignés avec ce que retourne /api/projects/[projectId]
 interface UmlAttribute {
   id: string;
   name: string;
@@ -18,8 +18,7 @@ interface UmlAttribute {
 interface UmlClass {
   id: string;
   name: string;
-  positionX: number;
-  positionY: number;
+  position: { x: number; y: number };  // ✅ plus positionX/positionY
   color: string;
   attributes: UmlAttribute[];
 }
@@ -28,8 +27,8 @@ interface UmlRelation {
   id: string;
   type: string;
   name?: string;
-  sourceId: string;
-  targetId: string;
+  source: string;      // ✅ plus sourceId
+  target: string;      // ✅ plus targetId
   sourceCard?: string;
   targetCard?: string;
 }
@@ -53,14 +52,14 @@ function McdContent() {
         const mcdEntities = data.classes.map((cls: UmlClass) => ({
           id: cls.id,
           name: cls.name.toUpperCase(),
-          x: cls.positionX,
-          y: cls.positionY,
+          x: cls.position?.x ?? 0,   // ✅ position.x
+          y: cls.position?.y ?? 0,   // ✅ position.y
           color: cls.color || "#4f46e5",
           attributes: cls.attributes.map((attr: UmlAttribute) => ({
             id: attr.id,
             name: attr.name,
             type: attr.type,
-            isPrimary: attr.name.toLowerCase().includes("id")
+            isPrimary: attr.name.toLowerCase().includes("id"),
           })),
         }));
 
@@ -68,8 +67,8 @@ function McdContent() {
           id: rel.id,
           name: rel.name || "ASSOCIATION",
           type: "association",
-          sourceId: rel.sourceId,
-          targetId: rel.targetId,
+          sourceId: rel.source,        // ✅ source
+          targetId: rel.target,        // ✅ target
           sourceCard: rel.sourceCard || "1,1",
           targetCard: rel.targetCard || "0,N",
         }));
@@ -83,10 +82,7 @@ function McdContent() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", backgroundColor: "#f3f4f6" }}>
-      {/* ✅ Utilisation de MldNavbar avec l'onglet actif MCD */}
       <MldNavbar activeTab="MCD" projectId={projectId} />
-      
-      {/* Container principal */}
       <div style={{ display: "flex", flex: 1, overflow: "hidden", marginTop: 48 }}>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", position: "relative" }}>
           <Canvas />

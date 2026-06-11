@@ -1,17 +1,17 @@
+
 "use client";
 
 import { useState, useCallback, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Navbar } from "@/components/Navbar";
 import { Toolbar } from "@/components/Toolbar";
 import { RelationBar } from "@/components/RelationBar";
 import { Canvas } from "@/components/Canvas";
 import { Sidebar } from "@/components/Siderbar";
-import { useDiagramStore } from "@/store/useDiagramStore";
+import { useDiagramStore, useSelectedClass } from "@/store/useDiagramStore";
 import { SaveModal } from '@/components/SaveModal';
 import { Toast } from '@/components/Toast';
 
-// --- Interfaces API pour le typage strict ---
 interface ApiAttribute {
   id: string;
   name: string;
@@ -31,8 +31,7 @@ interface ApiClass {
   name: string;
   stereotype: string | null;
   color: string;
-  positionX: number;
-  positionY: number;
+  position: { x: number; y: number };  // ✅ déjà transformé par l'API
   attributes: ApiAttribute[];
   methods: ApiMethod[];
 }
@@ -43,76 +42,100 @@ interface ApiRelation {
   name: string | null;
   sourceLabel: string | null;
   targetLabel: string | null;
-  sourceId: string;
-  targetId: string;
+  source: string;  // ✅ l'API retourne "source" (pas "sourceId")
+  target: string;  // ✅ l'API retourne "target" (pas "targetId")
 }
 
 export default function ClassePage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const urlProjectId = searchParams.get('projectId');
 
   const {
-    classes, relations, selectedClass, selectedClassId,
+    classes, relations, selectedClassId,
     activeRelationType, projectId, projectName,
     addClass, updateClass, deleteClass, addRelation, updateRelation,
     setSelectedClassId, setActiveRelationType,
     setProjectId, setProjectName, loadProject,
   } = useDiagramStore();
 
-  const [showModal, setShowModal] = useState(false);
-  const [isSaving, setIsSaving]   = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [toast, setToast]         = useState<string | null>(null);
+  const selectedClass = useSelectedClass();
 
-  // --- Logique de chargement initial ---
+  const [showModal, setShowModal] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
-    if (!urlProjectId) return;
+    if (!urlProjectId) {
+      console.warn("⚠️ projectId manquant dans l'URL");
+      return;
+    }
+
     let cancelled = false;
 
     async function loadData() {
       setIsLoading(true);
+      setError(null);
+
       try {
         const res = await fetch(`/api/projects/${urlProjectId}`);
-        if (!res.ok) throw new Error('Projet introuvable');
+
+        if (res.status === 401) throw new Error("Session expirée. Veuillez vous reconnecter.");
+        if (res.status === 403) throw new Error("Vous n'avez pas accès à ce projet.");
+        if (res.status === 404) throw new Error("Projet non trouvé dans la base de données.");
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(`Erreur ${res.status}: ${errorText || "Projet introuvable"}`);
+        }
+
         const project = await res.json();
         if (cancelled) return;
 
         setProjectId(project.id);
         setProjectName(project.name);
 
-        const loadedClasses = project.classes.map((cls: ApiClass) => ({
+        // ✅ L'API retourne déjà position: { x, y }
+        const loadedClasses = (project.classes || []).map((cls: ApiClass) => ({
           id: cls.id,
           name: cls.name,
           stereotype: cls.stereotype ?? '',
           color: cls.color,
-          position: { x: cls.positionX, y: cls.positionY },
-          attributes: cls.attributes,
-          methods: cls.methods,
+          position: {
+            x: cls.position?.x ?? 0,
+            y: cls.position?.y ?? 0,
+          },
+          attributes: cls.attributes || [],
+          methods: cls.methods || [],
         }));
 
-        const loadedRelations = project.relations.map((rel: ApiRelation) => ({
+        // ✅ L'API retourne déjà source/target
+        const loadedRelations = (project.relations || []).map((rel: ApiRelation) => ({
           id: rel.id,
           type: rel.type,
           name: rel.name ?? '',
           sourceLabel: rel.sourceLabel ?? '',
           targetLabel: rel.targetLabel ?? '',
-          source: rel.sourceId,
-          target: rel.targetId,
+          source: rel.source,
+          target: rel.target,
         }));
 
         loadProject(loadedClasses, loadedRelations);
       } catch (err) {
-        console.error("Load error:", err);
-        setToast('Erreur lors du chargement');
+        if (cancelled) return;
+        const msg = err instanceof Error ? err.message : "Erreur inconnue";
+        setError(msg);
+        setToast(msg);
       } finally {
         if (!cancelled) setIsLoading(false);
       }
     }
+
     loadData();
     return () => { cancelled = true; };
   }, [loadProject, setProjectId, setProjectName, urlProjectId]);
 
-  // --- Logique de Sauvegarde (Mise à jour ou Création) ---
   const handleSaveClick = () => {
     if (projectId === null) {
       setShowModal(true);
@@ -167,13 +190,73 @@ export default function ClassePage() {
     updateClass(id, { position });
   }, [updateClass]);
 
-  if (isLoading) return <div className="p-10 text-center">Chargement...</div>;
+  if (isLoading) {
+    return (
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        height: '100vh', backgroundColor: '#f3f4f6',
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            width: '50px', height: '50px',
+            border: '4px solid #e5e7eb', borderTop: '4px solid #6366f1',
+            borderRadius: '50%', animation: 'spin 1s linear infinite',
+            margin: '0 auto 20px',
+          }} />
+          <p style={{ color: '#6b7280', fontSize: '16px' }}>Chargement du projet...</p>
+          <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        height: '100vh', backgroundColor: '#f3f4f6',
+      }}>
+        <div style={{
+          textAlign: 'center', padding: '40px', backgroundColor: 'white',
+          borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', maxWidth: '500px',
+        }}>
+          <div style={{ fontSize: '48px', marginBottom: '20px' }}>⚠️</div>
+          <h2 style={{ color: '#1f2937', marginBottom: '10px', fontSize: '24px' }}>
+            Erreur de chargement
+          </h2>
+          <p style={{ color: '#6b7280', marginBottom: '30px', lineHeight: '1.6' }}>{error}</p>
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+            <button
+              onClick={() => router.push('/dashboard')}
+              style={{
+                padding: '12px 24px', backgroundColor: '#6366f1', color: 'white',
+                border: 'none', borderRadius: '8px', cursor: 'pointer',
+                fontSize: '14px', fontWeight: '500',
+              }}
+            >
+              Retour au dashboard
+            </button>
+            <button
+              onClick={() => window.location.reload()}
+              style={{
+                padding: '12px 24px', backgroundColor: '#e5e7eb', color: '#374151',
+                border: 'none', borderRadius: '8px', cursor: 'pointer',
+                fontSize: '14px', fontWeight: '500',
+              }}
+            >
+              Réessayer
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
       <Navbar
         projectName={projectName || 'Nouveau diagramme'}
-        onProjectNameChange={setProjectName} 
+        onProjectNameChange={setProjectName}
         onSave={handleSaveClick}
         isSaving={isSaving}
         isSaved={projectId !== null}
@@ -206,10 +289,10 @@ export default function ClassePage() {
       </div>
 
       {showModal && (
-        <SaveModal 
-          onSave={handleFirstSave} 
-          onClose={() => setShowModal(false)} 
-          isSaving={isSaving} 
+        <SaveModal
+          onSave={handleFirstSave}
+          onClose={() => setShowModal(false)}
+          isSaving={isSaving}
         />
       )}
       {toast && <Toast message={toast} onClose={() => setToast(null)} />}

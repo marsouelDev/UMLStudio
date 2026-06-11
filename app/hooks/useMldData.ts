@@ -1,50 +1,101 @@
-// src/hooks/useMldData.ts
-
 "use client";
+import { useState, useEffect } from "react";
 
-import { useEffect, useState } from "react";
-import { Table, Relation } from "@/data/mldData";
+// Types pour les données MLD
+interface MldAttribute {
+  id: string;
+  name: string;
+  type: string;
+  visibility: string;
+  isPrimary: boolean;
+}
 
-type MldData = {
-  projectName: string;
-  tables: Table[];
-  relations: Relation[];
-};
+interface MldMethod {
+  id: string;
+  name: string;
+  returnType: string;
+  visibility: string;
+}
 
-type Status = "loading" | "success" | "error";
+interface MldTable {
+  id: string;
+  name: string;
+  stereotype: string | null;
+  attributes: MldAttribute[];
+  methods: MldMethod[];
+}
 
-export function useMldData(projectId: string) {
+interface MldRelation {
+  id: string;
+  type: string;
+  name: string | null;
+  sourceId: string;
+  targetId: string;
+  sourceCard: string | null;
+  targetCard: string | null;
+}
+
+interface MldData {
+  tables: MldTable[];
+  relations: MldRelation[];
+  generatedAt: string;
+}
+
+export function useMldData(projectId: string | null) {
   const [data, setData] = useState<MldData | null>(null);
-  const [status, setStatus] = useState<Status>("loading");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // 1. SÉCURITÉ : Bloque le fetch si l'ID est absent, vide, ou vaut littéralement "undefined"
-    if (!projectId || projectId === "undefined" || projectId.trim() === "") {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setStatus("loading"); // Reste en chargement en attendant l'ID
+    if (!projectId) {
+      console.warn("⚠️ projectId manquant");
       return;
     }
 
-    async function fetchMld() {
-      // Réinitialise le statut à loading si l'ID change
-      setStatus("loading");
+    let cancelled = false;
+
+    const fetchMld = async () => {
+      setLoading(true);
+      setError(null);
 
       try {
         const res = await fetch(`/api/projects/${projectId}/mld`);
 
-        if (!res.ok) throw new Error("Projet introuvable");
+        if (res.status === 404) {
+          if (!cancelled) {
+            setData(null);
+            setError(null);
+            setLoading(false);
+          }
+          return;
+        }
 
-        const json = await res.json();
-        setData(json);
-        setStatus("success");
-      } catch (error) {
-        console.error("Erreur fetch MLD :", error);
-        setStatus("error");
+        if (!res.ok) {
+          throw new Error(`Erreur ${res.status}`);
+        }
+
+        const json: MldData = await res.json();
+        
+        if (!cancelled) {
+          setData(json);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Erreur inconnue");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
-    }
+    };
 
     fetchMld();
+
+    return () => {
+      cancelled = true;
+    };
   }, [projectId]);
 
-  return { data, status };
+  return { data, loading, error };
 }

@@ -1,23 +1,47 @@
 "use client";
-import { useState, useCallback } from "react";
+import { create } from "zustand";
 import { UMLClass, UMLRelation, RelationType } from "../types/uml";
 
 const generateId = () =>
   `id-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
-export function useDiagramStore() {
-  const [classes, setClassesState] = useState<UMLClass[]>([]);
-  const [relations, setRelationsState] = useState<UMLRelation[]>([]);
-  const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
-  const [activeRelationType, setActiveRelationType] =
-    useState<RelationType>("association");
+interface DiagramState {
+  classes: UMLClass[];
+  relations: UMLRelation[];
+  selectedClassId: string | null;
+  activeRelationType: RelationType;
+  projectId: string | null;
+  projectName: string;
 
-  const [projectId, setProjectId] = useState<string | null>(null);
-  const [projectName, setProjectName] = useState<string>("");
+  // Actions
+  addClass: () => void;
+  updateClass: (id: string, updates: Partial<UMLClass>) => void;
+  deleteClass: (id: string) => void;
+  addRelation: (sourceId: string, targetId: string) => void;
+  updateRelation: (id: string, updates: Partial<UMLRelation>) => void;
+  setSelectedClassId: (id: string | null) => void;
+  setActiveRelationType: (type: RelationType) => void;
+  setClasses: (classes: UMLClass[]) => void;
+  setRelations: (relations: UMLRelation[]) => void;
+  setProjectId: (id: string | null) => void;
+  setProjectName: (name: string) => void;
+  loadProject: (
+    classes: UMLClass[],
+    relations: UMLRelation[],
+    name?: string,
+  ) => void;
+  reset: () => void;
+}
 
-  const selectedClass = classes.find((c) => c.id === selectedClassId) || null;
+export const useDiagramStore = create<DiagramState>((set, get) => ({
+  classes: [],
+  relations: [],
+  selectedClassId: null,
+  activeRelationType: "association",
+  projectId: null,
+  projectName: "",
 
-  const addClass = useCallback(() => {
+  addClass: () => {
     const newClass: UMLClass = {
       id: generateId(),
       name: "NouvelleClasse",
@@ -29,101 +53,131 @@ export function useDiagramStore() {
         y: 100 + Math.random() * 200,
       },
     };
-    setClassesState((prev) => [...prev, newClass]);
-    setSelectedClassId(newClass.id);
-  }, []);
+    set((state) => ({
+      classes: [...state.classes, newClass],
+      selectedClassId: newClass.id,
+    }));
+  },
 
-  const updateClass = useCallback((id: string, updates: Partial<UMLClass>) => {
-    setClassesState((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, ...updates } : c)),
+  updateClass: (id, updates) => {
+    set((state) => ({
+      classes: state.classes.map((c) =>
+        c.id === id ? { ...c, ...updates } : c,
+      ),
+    }));
+  },
+
+  deleteClass: (id) => {
+    set((state) => ({
+      classes: state.classes.filter((c) => c.id !== id),
+      relations: state.relations.filter(
+        (r) => r.source !== id && r.target !== id,
+      ),
+      selectedClassId: null,
+    }));
+  },
+
+  addRelation: (sourceId, targetId) => {
+    const { activeRelationType } = get();
+    const defaultLabels: Record<
+      RelationType,
+      { sourceLabel: string; targetLabel: string; name: string }
+    > = {
+      association: {
+        sourceLabel: "1",
+        targetLabel: "0..*",
+        name: "association",
+      },
+      heritage: { sourceLabel: "", targetLabel: "", name: "" },
+      composition: { sourceLabel: "1", targetLabel: "1..*", name: "" },
+      agregation: { sourceLabel: "0..1", targetLabel: "0..*", name: "" },
+    };
+
+    const newRelation: UMLRelation = {
+      id: generateId(),
+      source: sourceId,
+      target: targetId,
+      type: activeRelationType,
+      ...defaultLabels[activeRelationType],
+    };
+
+    set((state) => ({
+      relations: [...state.relations, newRelation],
+    }));
+  },
+
+  updateRelation: (id, updates) => {
+    set((state) => ({
+      relations: state.relations.map((r) =>
+        r.id === id ? { ...r, ...updates } : r,
+      ),
+    }));
+  },
+
+  setSelectedClassId: (id) => set({ selectedClassId: id }),
+  setActiveRelationType: (type) => set({ activeRelationType: type }),
+
+  setClasses: (newClasses) => {
+    const validatedClasses = newClasses.map((cls) => ({
+      ...cls,
+      position:
+        cls.position &&
+        typeof cls.position.x === "number" &&
+        typeof cls.position.y === "number"
+          ? cls.position
+          : { x: 100 + Math.random() * 300, y: 100 + Math.random() * 200 },
+    }));
+    set({ classes: validatedClasses });
+  },
+
+  setRelations: (newRelations) => {
+    const validatedRelations = newRelations.filter(
+      (rel) => rel.source && rel.target,
     );
-  }, []);
+    set({ relations: validatedRelations });
+  },
 
-  const deleteClass = useCallback((id: string) => {
-    setClassesState((prev) => prev.filter((c) => c.id !== id));
-    setRelationsState((prev) =>
-      prev.filter((r) => r.source !== id && r.target !== id),
+  setProjectId: (id) => set({ projectId: id }),
+  setProjectName: (name) => set({ projectName: name }),
+
+  loadProject: (loadedClasses, loadedRelations, name) => {
+    const validatedClasses = loadedClasses.map((cls) => ({
+      ...cls,
+      position:
+        cls.position &&
+        typeof cls.position.x === "number" &&
+        typeof cls.position.y === "number"
+          ? cls.position
+          : { x: 100 + Math.random() * 300, y: 100 + Math.random() * 200 },
+    }));
+
+    const validatedRelations = loadedRelations.filter(
+      (rel) => rel.source && rel.target,
     );
-    setSelectedClassId(null);
-  }, []);
 
-  const addRelation = useCallback(
-    (sourceId: string, targetId: string) => {
-      const defaultLabels: Record<
-        RelationType,
-        {
-          sourceLabel: string;
-          targetLabel: string;
-          name: string;
-        }
-      > = {
-        association: {
-          sourceLabel: "1",
-          targetLabel: "0..*",
-          name: "association",
-        },
-        heritage: { sourceLabel: "", targetLabel: "", name: "" },
-        composition: { sourceLabel: "1", targetLabel: "1..*", name: "" },
-        agregation: { sourceLabel: "0..1", targetLabel: "0..*", name: "" },
-      };
-      const newRelation: UMLRelation = {
-        id: generateId(),
-        source: sourceId,
-        target: targetId,
-        type: activeRelationType,
-        ...defaultLabels[activeRelationType],
-      };
-      setRelationsState((prev) => [...prev, newRelation]);
-    },
-    [activeRelationType],
+    set({
+      classes: validatedClasses,
+      relations: validatedRelations,
+      selectedClassId: null,
+      projectName: name || "",
+    });
+  },
+
+  reset: () =>
+    set({
+      classes: [],
+      relations: [],
+      selectedClassId: null,
+      activeRelationType: "association",
+      projectId: null,
+      projectName: "",
+    }),
+}));
+
+// ✅ Selector pour obtenir la classe sélectionnée
+export const useSelectedClass = () => {
+  return useDiagramStore(
+    (state) =>
+      state.classes.find((c) => c.id === state.selectedClassId) || null,
   );
-
-  const updateRelation = useCallback(
-    (id: string, updates: Partial<UMLRelation>) => {
-      setRelationsState((prev) =>
-        prev.map((r) => (r.id === id ? { ...r, ...updates } : r)),
-      );
-    },
-    [],
-  );
-
-  const setClasses = useCallback((newClasses: UMLClass[]) => {
-    setClassesState(newClasses);
-  }, []);
-
-  const setRelations = useCallback((newRelations: UMLRelation[]) => {
-    setRelationsState(newRelations);
-  }, []);
-
-  // ✅ Charge un projet complet dans le store
-  const loadProject = useCallback(
-    (loadedClasses: UMLClass[], loadedRelations: UMLRelation[]) => {
-      setClassesState(loadedClasses);
-      setRelationsState(loadedRelations);
-      setSelectedClassId(null);
-    },
-    [],
-  );
-
-  return {
-    classes,
-    relations,
-    selectedClass,
-    selectedClassId,
-    activeRelationType,
-    projectId,
-    projectName,
-    addClass,
-    updateClass,
-    deleteClass,
-    addRelation,
-    updateRelation,
-    setSelectedClassId,
-    setActiveRelationType,
-    setClasses,
-    setRelations,
-    setProjectId,
-    setProjectName,
-    loadProject, // ✅ exposé
-  };
-}
+};

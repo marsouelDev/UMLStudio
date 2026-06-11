@@ -76,6 +76,8 @@ export async function POST(request: Request) {
             name: rel.name ?? null,
             sourceLabel: rel.sourceLabel ?? null,
             targetLabel: rel.targetLabel ?? null,
+            sourceCard: rel.sourceLabel ?? null, //  aussi stocker en sourceCard
+            targetCard: rel.targetLabel ?? null, //  aussi stocker en targetCard
             sourceId: rel.source,
             targetId: rel.target,
             projectId: newProject.id,

@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { toPng } from "html-to-image"; 
 import { jsPDF } from "jspdf";
 import { useDiagramStore } from "@/store/useDiagramStore";
+import { exportDiagramToCanvas, canvasToDataUrl } from "@/app/utils/diagramExporter";
 import ExportNavbar from "./exportNavbar";
 import styles from "@/styles/export/export-modal.module.css";
 
@@ -17,55 +17,107 @@ const formats = [
 
 export default function ExportModal() {
   const router = useRouter();
-  const { classes, projectName } = useDiagramStore();
+  const { classes, relations, projectName } = useDiagramStore();
   const [selectedFormat, setSelectedFormat] = useState("png");
   const [isExporting, setIsExporting] = useState(false);
 
+  const downloadDataUrl = (dataUrl: string, filename: string) => {
+    const link = document.createElement("a");
+    link.download = filename;
+    link.href = dataUrl;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const downloadTextFile = (content: string, filename: string) => {
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.download = filename;
+    link.href = url;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const handleExport = async () => {
-    const element = document.getElementById("diagram-canvas");
     const fileName = projectName || "mon-diagramme";
     setIsExporting(true);
 
     try {
+      // Export SQL
       if (selectedFormat === "sql") {
-        // Logique SQL utilisant les données réelles
-        let sql = `-- Export SQL : ${fileName}\n\n`;
-        classes.forEach(cls => {
+        let sql = `-- Export SQL : ${fileName}\n-- Généré le ${new Date().toLocaleDateString("fr-FR")}\n\n`;
+        classes.forEach((cls) => {
           sql += `CREATE TABLE ${cls.name.toUpperCase()} (\n`;
-          const cols = cls.attributes.map(a => `  ${a.name} ${a.type.toUpperCase()}`);
+          const cols = cls.attributes.map(
+            (a: { name: string; type: string }) =>
+              `  ${a.name} ${a.type.toUpperCase()}`
+          );
           sql += cols.join(",\n") + `\n);\n\n`;
         });
-        downloadFile(sql, `${fileName}.sql`, "text/plain");
-      } else {
-        if (!element) throw new Error("Canvas non trouvé");
-        
-        await new Promise(r => setTimeout(r, 400));
-
-        const dataUrl = await toPng(element, { backgroundColor: "#ffffff", pixelRatio: 2 });
-
-        if (selectedFormat === "png" || selectedFormat === "svg") {
-          // Pour SVG on utilise aussi le dataUrl PNG ici pour la simplicité, 
-          // ou tu peux rajouter toSvg si nécessaire
-          downloadFile(dataUrl, `${fileName}.${selectedFormat}`, `image/${selectedFormat}`, true);
-        } else if (selectedFormat === "pdf") {
-          const pdf = new jsPDF("l", "mm", "a4");
-          pdf.addImage(dataUrl, "PNG", 10, 10, 277, 190);
-          pdf.save(`${fileName}.pdf`);
-        }
+        downloadTextFile(sql, `${fileName}.sql`);
+        return;
       }
+
+      // Construire les données pour l'export canvas
+      const exportClasses = classes.map((cls) => ({
+        id: cls.id,
+        name: cls.name,
+        stereotype: cls.stereotype ?? null,
+        color: cls.color ?? "#6B4EFF",
+        positionX: cls.position?.x ?? 0,
+        positionY: cls.position?.y ?? 0,
+        attributes: cls.attributes ?? [],
+        methods: cls.methods ?? [],
+      }));
+
+      const exportRelations = relations.map((rel) => ({
+        id: rel.id,
+        type: rel.type,
+        name: rel.name ?? null,
+        sourceLabel: rel.sourceLabel ?? null,
+        targetLabel: rel.targetLabel ?? null,
+      sourceId: rel.source,  //  plus de fallback nécessaire
+  targetId: rel.target,      //  plus de fallback nécessaire
+      }));
+
+      // Générer le canvas
+      const canvas = await exportDiagramToCanvas(exportClasses, exportRelations);
+      const dataUrl = canvasToDataUrl(canvas);
+
+      if (selectedFormat === "png") {
+        downloadDataUrl(dataUrl, `${fileName}.png`);
+
+      } else if (selectedFormat === "svg") {
+        // Convertir le PNG en SVG encapsulé
+        const { width, height } = canvas;
+        const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${width / 2}" height="${height / 2}">
+  <image href="${dataUrl}" width="${width / 2}" height="${height / 2}"/>
+</svg>`;
+        const blob = new Blob([svgContent], { type: "image/svg+xml" });
+        const url = URL.createObjectURL(blob);
+        downloadDataUrl(url, `${fileName}.svg`);
+        URL.revokeObjectURL(url);
+
+      } else if (selectedFormat === "pdf") {
+        const imgWidth = canvas.width / 2;
+        const imgHeight = canvas.height / 2;
+        const orientation = imgWidth > imgHeight ? "landscape" : "portrait";
+
+        const pdf = new jsPDF({ orientation, unit: "px", format: [imgWidth, imgHeight] });
+        pdf.addImage(dataUrl, "PNG", 0, 0, imgWidth, imgHeight);
+        pdf.save(`${fileName}.pdf`);
+      }
+
     } catch (err) {
-      console.error(err);
-      alert("Erreur lors de l'exportation.");
+      console.error("Erreur d'export:", err);
+      alert(`Erreur : ${err instanceof Error ? err.message : "Erreur inconnue"}`);
     } finally {
       setIsExporting(false);
     }
-  };
-
-  const downloadFile = (content: string, name: string, type: string, isUrl = false) => {
-    const link = document.createElement("a");
-    link.href = isUrl ? content : URL.createObjectURL(new Blob([content], { type }));
-    link.download = name;
-    link.click();
   };
 
   return (
@@ -74,42 +126,46 @@ export default function ExportModal() {
       <div className={styles.overlay}>
         <div className={styles.modal}>
           <h2 className={styles.title}>Exporter le projet</h2>
-          <p className={styles.subtitle}>Format sélectionné : <strong>{selectedFormat.toUpperCase()}</strong></p>
-          
+          <p className={styles.subtitle}>
+            Format sélectionné : <strong>{selectedFormat.toUpperCase()}</strong>
+          </p>
+
           <div className={styles.grid}>
             {formats.map((f) => (
-              <button 
-                key={f.id} 
+              <button
+                key={f.id}
                 className={`${styles.formatCard} ${selectedFormat === f.id ? styles.active : ""}`}
-                // ✅ Utilisation de setSelectedFormat pour corriger l'erreur ESLint
-                onClick={() => setSelectedFormat(f.id)} 
+                onClick={() => setSelectedFormat(f.id)}
                 type="button"
                 style={{
                   border: selectedFormat === f.id ? "2px solid #6366f1" : "1px solid #e5e7eb",
                   backgroundColor: selectedFormat === f.id ? "#f5f3ff" : "#fff",
-                  cursor: "pointer"
+                  cursor: "pointer",
                 }}
               >
-                <i className={`bi ${f.icon} ${styles.icon}`} style={{ color: selectedFormat === f.id ? "#6366f1" : "#6b7280" }}></i>
-                <span className={styles.label} style={{ color: selectedFormat === f.id ? "#4338ca" : "#374151" }}>
+                <i
+                  className={`bi ${f.icon} ${styles.icon}`}
+                  style={{ color: selectedFormat === f.id ? "#6366f1" : "#6b7280" }}
+                />
+                <span
+                  className={styles.label}
+                  style={{ color: selectedFormat === f.id ? "#4338ca" : "#374151" }}
+                >
                   {f.label}
                 </span>
+                <span className={styles.description}>{f.description}</span>
               </button>
             ))}
           </div>
 
           <div className={styles.footer}>
-            <button 
-              className={styles.cancelBtn} 
-              onClick={() => router.back()}
-              type="button"
-            >
+            <button className={styles.cancelBtn} onClick={() => router.back()} type="button">
               Annuler
             </button>
-            <button 
-              className={styles.downloadBtn} 
-              onClick={handleExport} 
-              disabled={isExporting || classes.length === 0}
+            <button
+              className={styles.downloadBtn}
+              onClick={handleExport}
+              disabled={isExporting}
             >
               {isExporting ? "Export en cours..." : "Télécharger"}
             </button>
