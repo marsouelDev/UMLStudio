@@ -47,8 +47,8 @@ export default function Sidebar() {
   const fullName = getFullName(user?.firstName, user?.lastName, user?.name, user?.email);
 
   const handleLogout = async () => {
-   await signOut({ redirect: false });
-router.push("/");
+    await signOut({ redirect: false });
+    router.push("/login");
   };
 
   return (

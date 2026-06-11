@@ -21,16 +21,15 @@ export function proxy(req: NextRequest) {
   const isAuthPage =
     pathname.startsWith("/login") || pathname.startsWith("/register");
 
-  // 3. Page d'accueil "/" = toujours accessible (landing page)
+  // 3. Page d'accueil "/" = toujours accessible
   if (pathname === "/") {
-    // Si déjà connecté sur la landing page → dashboard
     if (token) return NextResponse.redirect(new URL("/dashboard", req.url));
     return NextResponse.next();
   }
 
-  // 4. Pages protégées : non connecté → page d'accueil
+  // 4. Pages protégées : non connecté → /login
   if (!token && !isAuthPage) {
-    return NextResponse.redirect(new URL("/", req.url));
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
   // 5. Déjà connecté sur login/register → dashboard
@@ -42,5 +41,5 @@ export function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|Logo.ico).*)"],
 };

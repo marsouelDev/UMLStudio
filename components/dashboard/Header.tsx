@@ -32,9 +32,9 @@ export default function Header() {
   const initials = getInitials(user?.firstName, user?.lastName, user?.name, user?.email);
 
   const handleLogout = async () => {
-  await signOut({ redirect: false });
-router.push("/");
-}
+    await signOut({ redirect: false });
+    router.push("/login");
+  };
 
   return (
     <header className={styles.header}>
