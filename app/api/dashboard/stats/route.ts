@@ -1,4 +1,3 @@
-// app/api/dashboard/stats/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/Authoptions";
@@ -15,16 +14,18 @@ export async function GET() {
   const now = new Date();
   const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  const [totalProjects, newThisMonth, totalClasses] = await Promise.all([
-    prisma.project.count({ where: { userId } }),
-    prisma.project.count({ where: { userId, createdAt: { gte: firstDay } } }),
-    prisma.umlClass.count({ where: { project: { userId } } }),
-  ]);
+  const [totalProjects, newThisMonth, totalClasses, totalExports] =
+    await Promise.all([
+      prisma.project.count({ where: { userId } }),
+      prisma.project.count({ where: { userId, createdAt: { gte: firstDay } } }),
+      prisma.umlClass.count({ where: { project: { userId } } }),
+      prisma.userExport.count({ where: { userId } }), //  vrai comptage
+    ]);
 
   return NextResponse.json({
     totalProjects,
     totalClasses,
-    totalExports: 0,
+    totalExports,
     newThisMonth,
   });
 }

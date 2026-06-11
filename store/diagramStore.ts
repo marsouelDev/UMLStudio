@@ -44,6 +44,15 @@ interface DiagramStore {
   save: () => Promise<void>;
 }
 
+/** Garantit que x/y sont des nombres finis, sinon applique un décalage en cascade */
+function sanitizePosition(e: Entity, index = 0): Entity {
+  return {
+    ...e,
+    x: isFinite(e.x) ? e.x : 80 + (index % 4) * 200,
+    y: isFinite(e.y) ? e.y : 80 + Math.floor(index / 4) * 180,
+  };
+}
+
 export const useDiagram = create<DiagramStore>((set, get) => ({
   projectId: "",
   projectName: "",
@@ -53,13 +62,31 @@ export const useDiagram = create<DiagramStore>((set, get) => ({
 
   setProject: (id, name) => set({ projectId: id, projectName: name }),
 
-  setDiagram: (entities, relations) => set({ entities, relations }),
+  // ✅ Sanitize toutes les entités chargées depuis l'API (x/y peuvent être null/undefined)
+  setDiagram: (entities, relations) =>
+    set({
+      entities: entities.map((e, i) => sanitizePosition(e, i)),
+      relations,
+    }),
 
-  addEntity: (e) => set((s) => ({ entities: [...s.entities, e] })),
+  // ✅ Sanitize à la création aussi
+  addEntity: (e) =>
+    set((s) => ({
+      entities: [...s.entities, sanitizePosition(e, s.entities.length)],
+    })),
 
   updateEntity: (id, patch) =>
     set((s) => ({
-      entities: s.entities.map((e) => (e.id === id ? { ...e, ...patch } : e)),
+      entities: s.entities.map((e) => {
+        if (e.id !== id) return e;
+        const updated = { ...e, ...patch };
+        // ✅ Sanitize les mises à jour de position issues du drag
+        return {
+          ...updated,
+          x: isFinite(updated.x) ? updated.x : e.x,
+          y: isFinite(updated.y) ? updated.y : e.y,
+        };
+      }),
     })),
 
   removeEntity: (id) =>

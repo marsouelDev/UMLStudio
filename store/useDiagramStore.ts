@@ -13,7 +13,6 @@ interface DiagramState {
   projectId: string | null;
   projectName: string;
 
-  // Actions
   addClass: () => void;
   updateClass: (id: string, updates: Partial<UMLClass>) => void;
   deleteClass: (id: string) => void;
@@ -29,6 +28,7 @@ interface DiagramState {
     classes: UMLClass[],
     relations: UMLRelation[],
     name?: string,
+    id?: string | null,
   ) => void;
   reset: () => void;
 }
@@ -140,7 +140,7 @@ export const useDiagramStore = create<DiagramState>((set, get) => ({
   setProjectId: (id) => set({ projectId: id }),
   setProjectName: (name) => set({ projectName: name }),
 
-  loadProject: (loadedClasses, loadedRelations, name) => {
+  loadProject: (loadedClasses, loadedRelations, name, id) => {
     const validatedClasses = loadedClasses.map((cls) => ({
       ...cls,
       position:
@@ -160,6 +160,7 @@ export const useDiagramStore = create<DiagramState>((set, get) => ({
       relations: validatedRelations,
       selectedClassId: null,
       projectName: name || "",
+      ...(id !== undefined && { projectId: id }),
     });
   },
 
@@ -174,7 +175,6 @@ export const useDiagramStore = create<DiagramState>((set, get) => ({
     }),
 }));
 
-// ✅ Selector pour obtenir la classe sélectionnée
 export const useSelectedClass = () => {
   return useDiagramStore(
     (state) =>

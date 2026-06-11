@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { jsPDF } from "jspdf";
 import { useDiagramStore } from "@/store/useDiagramStore";
 import { exportDiagramToCanvas, canvasToDataUrl } from "@/app/utils/diagramExporter";
@@ -9,17 +9,34 @@ import ExportNavbar from "./exportNavbar";
 import styles from "@/styles/export/export-modal.module.css";
 
 const formats = [
-  { id: "png", icon: "bi-file-image", label: "PNG", description: "Image haute résolution" },
-  { id: "svg", icon: "bi-vector-pen", label: "SVG", description: "Vecteur scalable" },
-  { id: "pdf", icon: "bi-file-earmark-text", label: "PDF", description: "Document imprimable" },
-  { id: "sql", icon: "bi-code-slash", label: "SQL", description: "Script CREATE TABLE" },
+  { id: "png", icon: "bi-file-image",        label: "PNG", description: "Image haute résolution" },
+  { id: "svg", icon: "bi-vector-pen",         label: "SVG", description: "Vecteur scalable" },
+  { id: "pdf", icon: "bi-file-earmark-text",  label: "PDF", description: "Document imprimable" },
+  { id: "sql", icon: "bi-code-slash",         label: "SQL", description: "Script CREATE TABLE" },
 ];
 
 export default function ExportModal() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const projectId = searchParams.get("projectId");
+
   const { classes, relations, projectName } = useDiagramStore();
   const [selectedFormat, setSelectedFormat] = useState("png");
   const [isExporting, setIsExporting] = useState(false);
+
+  // ✅ Enregistre l'export en base pour le comptage stats
+  const trackExport = async (format: string) => {
+    try {
+      await fetch("/api/exports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ projectId, format }),
+      });
+    } catch (err) {
+      // Non bloquant — si le tracking échoue, l'export continue quand même
+      console.warn("Tracking export échoué:", err);
+    }
+  };
 
   const downloadDataUrl = (dataUrl: string, filename: string) => {
     const link = document.createElement("a");
@@ -59,6 +76,7 @@ export default function ExportModal() {
           sql += cols.join(",\n") + `\n);\n\n`;
         });
         downloadTextFile(sql, `${fileName}.sql`);
+        await trackExport("sql"); // ✅ tracker
         return;
       }
 
@@ -80,11 +98,10 @@ export default function ExportModal() {
         name: rel.name ?? null,
         sourceLabel: rel.sourceLabel ?? null,
         targetLabel: rel.targetLabel ?? null,
-      sourceId: rel.source,  //  plus de fallback nécessaire
-  targetId: rel.target,      //  plus de fallback nécessaire
+        sourceId: rel.source,
+        targetId: rel.target,
       }));
 
-      // Générer le canvas
       const canvas = await exportDiagramToCanvas(exportClasses, exportRelations);
       const dataUrl = canvasToDataUrl(canvas);
 
@@ -92,7 +109,6 @@ export default function ExportModal() {
         downloadDataUrl(dataUrl, `${fileName}.png`);
 
       } else if (selectedFormat === "svg") {
-        // Convertir le PNG en SVG encapsulé
         const { width, height } = canvas;
         const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${width / 2}" height="${height / 2}">
   <image href="${dataUrl}" width="${width / 2}" height="${height / 2}"/>
@@ -106,11 +122,12 @@ export default function ExportModal() {
         const imgWidth = canvas.width / 2;
         const imgHeight = canvas.height / 2;
         const orientation = imgWidth > imgHeight ? "landscape" : "portrait";
-
         const pdf = new jsPDF({ orientation, unit: "px", format: [imgWidth, imgHeight] });
         pdf.addImage(dataUrl, "PNG", 0, 0, imgWidth, imgHeight);
         pdf.save(`${fileName}.pdf`);
       }
+
+      await trackExport(selectedFormat); // ✅ tracker
 
     } catch (err) {
       console.error("Erreur d'export:", err);

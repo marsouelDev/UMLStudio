@@ -4,18 +4,21 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/Authoptions";
 import { prisma } from "@/lib/prisma";
 
 interface RequestAttribute {
+  id?: string;
   name: string;
   type: string;
   visibility?: string;
 }
 
 interface RequestMethod {
+  id?: string;
   name: string;
   returnType: string;
   visibility?: string;
 }
 
 interface RequestClass {
+  id?: string; //  id conservé
   name: string;
   stereotype?: string | null;
   color?: string;
@@ -25,6 +28,7 @@ interface RequestClass {
 }
 
 interface RequestRelation {
+  id?: string; //  id conservé
   type: string;
   name?: string | null;
   source: string;
@@ -61,12 +65,7 @@ export async function GET(
     const project = await prisma.project.findUnique({
       where: { id: projectId },
       include: {
-        classes: {
-          include: {
-            attributes: true,
-            methods: true,
-          },
-        },
+        classes: { include: { attributes: true, methods: true } },
         relations: true,
       },
     });
@@ -90,16 +89,12 @@ export async function GET(
       name: project.name,
       createdAt: project.createdAt,
       updatedAt: project.updatedAt,
-      // positionX/Y → position.x/y pour React Flow
       classes: project.classes.map((cls) => ({
         id: cls.id,
         name: cls.name,
         stereotype: cls.stereotype,
         color: cls.color,
-        position: {
-          x: cls.positionX,
-          y: cls.positionY,
-        },
+        position: { x: cls.positionX, y: cls.positionY },
         attributes: cls.attributes.map((attr) => ({
           id: attr.id,
           name: attr.name,
@@ -113,23 +108,20 @@ export async function GET(
           visibility: method.visibility,
         })),
       })),
-      // sourceId/targetId → source/target pour React Flow
       relations: project.relations.map((rel) => ({
         id: rel.id,
         type: rel.type,
         name: rel.name,
         source: rel.sourceId,
         target: rel.targetId,
-        sourceCard: rel.sourceCard,
-        targetCard: rel.targetCard,
-        sourceLabel: rel.sourceLabel ?? rel.sourceCard, // ✅ fallback
-        targetLabel: rel.targetLabel ?? rel.targetCard, // ✅ fallback
+        sourceLabel: rel.sourceLabel ?? rel.sourceCard,
+        targetLabel: rel.targetLabel ?? rel.targetCard,
       })),
-    }; // ✅ Fix 1 : accolade et point-virgule manquants ici
+    };
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error("❌ [API] Erreur GET:", error);
+    console.error(" [API] Erreur GET:", error);
     return NextResponse.json(
       {
         error: "Erreur serveur",
@@ -169,65 +161,77 @@ export async function PUT(
       );
     }
 
-    await prisma.project.update({
-      where: { id: projectId },
-      data: { name: body.name, updatedAt: new Date() },
+    //  Tout dans une transaction atomique
+    await prisma.$transaction(async (tx) => {
+      // Mettre à jour le nom du projet
+      await tx.project.update({
+        where: { id: projectId },
+        data: { name: body.name, updatedAt: new Date() },
+      });
+
+      // Supprimer les anciens enregistrements
+      await tx.umlRelation.deleteMany({ where: { projectId } });
+      await tx.umlClass.deleteMany({ where: { projectId } });
+
+      //  Recréer les classes EN CONSERVANT LEURS IDs
+      if (body.classes && body.classes.length > 0) {
+        for (const cls of body.classes) {
+          await tx.umlClass.create({
+            data: {
+              id: cls.id, //  ID conservé — les relations peuvent pointer dessus
+              name: cls.name,
+              stereotype: cls.stereotype || null,
+              color: cls.color || "#6B4EFF",
+              positionX: cls.position?.x ?? 0,
+              positionY: cls.position?.y ?? 0,
+              projectId,
+              attributes: {
+                create: (cls.attributes || []).map(
+                  (attr: RequestAttribute) => ({
+                    id: attr.id, //  ID attribut conservé
+                    name: attr.name,
+                    type: attr.type,
+                    visibility: attr.visibility || "private",
+                  }),
+                ),
+              },
+              methods: {
+                create: (cls.methods || []).map((method: RequestMethod) => ({
+                  id: method.id, //  ID méthode conservé
+                  name: method.name,
+                  returnType: method.returnType,
+                  visibility: method.visibility || "public",
+                })),
+              },
+            },
+          });
+        }
+      }
+
+      //  Recréer les relations EN CONSERVANT LEURS IDs
+      if (body.relations && body.relations.length > 0) {
+        for (const rel of body.relations) {
+          await tx.umlRelation.create({
+            data: {
+              id: rel.id, // ID conservé
+              type: rel.type,
+              name: rel.name || null,
+              sourceId: rel.source,
+              targetId: rel.target,
+              sourceLabel: rel.sourceLabel || null,
+              targetLabel: rel.targetLabel || null,
+              sourceCard: rel.sourceLabel || null,
+              targetCard: rel.targetLabel || null,
+              projectId,
+            },
+          });
+        }
+      }
     });
-
-    await prisma.umlClass.deleteMany({ where: { projectId } });
-    await prisma.umlRelation.deleteMany({ where: { projectId } });
-
-    if (body.classes && body.classes.length > 0) {
-      for (const cls of body.classes) {
-        await prisma.umlClass.create({
-          data: {
-            name: cls.name,
-            stereotype: cls.stereotype || null,
-            color: cls.color || "#6B4EFF",
-            positionX: cls.position?.x ?? 0,
-            positionY: cls.position?.y ?? 0,
-            projectId,
-            attributes: {
-              create: (cls.attributes || []).map((attr: RequestAttribute) => ({
-                name: attr.name,
-                type: attr.type,
-                visibility: attr.visibility || "private",
-              })),
-            },
-            methods: {
-              create: (cls.methods || []).map((method: RequestMethod) => ({
-                name: method.name,
-                returnType: method.returnType,
-                visibility: method.visibility || "public",
-              })),
-            },
-          },
-        });
-      }
-    }
-
-    // ✅ Fix 2 : guard sur body.relations potentiellement undefined
-    if (body.relations && body.relations.length > 0) {
-      for (const rel of body.relations) {
-        await prisma.umlRelation.create({
-          data: {
-            type: rel.type,
-            name: rel.name || null,
-            sourceId: rel.source,
-            targetId: rel.target,
-            sourceLabel: rel.sourceLabel || null,
-            targetLabel: rel.targetLabel || null,
-            sourceCard: rel.sourceLabel || null, // cohérent avec POST
-            targetCard: rel.targetLabel || null, // cohérent avec POST
-            projectId,
-          },
-        });
-      }
-    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("❌ [API] Erreur PUT:", error);
+    console.error(" [API] Erreur PUT:", error);
     return NextResponse.json(
       {
         error: "Erreur serveur",
@@ -268,7 +272,7 @@ export async function DELETE(
     await prisma.project.delete({ where: { id: projectId } });
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("❌ [API] Erreur DELETE:", error);
+    console.error(" [API] Erreur DELETE:", error);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }

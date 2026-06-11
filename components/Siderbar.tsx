@@ -24,8 +24,8 @@ const ConceptionContent = ({ projectId }: { projectId: string }) => {
   const isSaved = projectId && projectId.length > 0;
   const options = [
     { id: "mcd", label: "MCD", desc: "Modèle Conceptuel", route: "/mcd", color: "#0e7490", icon: <Layout size={18} /> },
-    { id: "mld", label: "MLD", desc: "Modèle Logique", route: "/mld", color: "#6B4EFF", icon: <GitBranch size={18} /> },
-    { id: "sql", label: "SQL", desc: "Script DDL SQL", route: "/sql", color: "#0369a1", icon: <Database size={18} /> },
+    { id: "mld", label: "MLD", desc: "Modèle Logique",    route: "/mld", color: "#6B4EFF", icon: <GitBranch size={18} /> },
+    { id: "sql", label: "SQL", desc: "Script DDL SQL",    route: "/sql", color: "#0369a1", icon: <Database size={18} /> },
   ];
 
   return (
@@ -110,20 +110,20 @@ export function Sidebar({
               <>
                 <div className="sidebar__section sidebar__section--main">
                   <h3 className="sidebar__section-title">CONFIGURATION CLASSE</h3>
-                  <input 
-                    className="sidebar__input-hero" 
+                  <input
+                    className="sidebar__input-hero"
                     value={selectedClass.name}
                     placeholder="Nom de la classe..."
-                    onChange={e => onUpdateClass(selectedClass.id, { name: e.target.value })} 
+                    onChange={e => onUpdateClass(selectedClass.id, { name: e.target.value })}
                   />
-                  
+
                   <div className="sidebar__color-picker-container">
                     <div className="sidebar__label-small"><Palette size={12} /> THÈME VISUEL</div>
                     <div className="sidebar__color-row">
                       <div className="custom-color-wrapper">
                         <Pipette size={14} className="pipette-icon" />
-                        <input 
-                          type="color" 
+                        <input
+                          type="color"
                           value={selectedClass.color || "#6B4EFF"}
                           onChange={e => onUpdateClass(selectedClass.id, { color: e.target.value })}
                           className="sidebar__input-color-custom"
@@ -133,7 +133,7 @@ export function Sidebar({
                       {PRESET_COLORS.map(hex => (
                         <button
                           key={hex}
-                          className={`color-dot ${selectedClass.color === hex ? 'is-active' : ''}`}
+                          className={`color-dot ${selectedClass.color === hex ? "is-active" : ""}`}
                           style={{ backgroundColor: hex }}
                           onClick={() => onUpdateClass(selectedClass.id, { color: hex })}
                         />
@@ -145,17 +145,17 @@ export function Sidebar({
                 <div className="sidebar__section">
                   <div className="sidebar__section-header">
                     <h3 className="sidebar__section-title">ATTRIBUTS</h3>
-                    <button onClick={handleAddAttribute} className="btn-add-minimal"><Plus size={14}/></button>
+                    <button onClick={handleAddAttribute} className="btn-add-minimal"><Plus size={14} /></button>
                   </div>
                   <div className="sidebar__list">
                     {selectedClass.attributes.map((attr) => (
                       <div key={attr.id} className="sidebar__field-row">
-                        <select 
-                          value={attr.visibility} 
+                        <select
+                          value={attr.visibility}
                           className="sidebar__field-select"
                           onChange={e => {
                             const val = e.target.value as UMLAttribute["visibility"];
-                            const newAttrs = selectedClass.attributes.map(a => a.id === attr.id ? {...a, visibility: val} : a);
+                            const newAttrs = selectedClass.attributes.map(a => a.id === attr.id ? { ...a, visibility: val } : a);
                             onUpdateClass(selectedClass.id, { attributes: newAttrs });
                           }}
                         >
@@ -163,20 +163,20 @@ export function Sidebar({
                           <option value="private">-</option>
                           <option value="protected">#</option>
                         </select>
-                        <input 
-                          className="sidebar__field-input name" 
+                        <input
+                          className="sidebar__field-input name"
                           value={attr.name}
                           onChange={e => {
-                            const newAttrs = selectedClass.attributes.map(a => a.id === attr.id ? {...a, name: e.target.value} : a);
+                            const newAttrs = selectedClass.attributes.map(a => a.id === attr.id ? { ...a, name: e.target.value } : a);
                             onUpdateClass(selectedClass.id, { attributes: newAttrs });
                           }}
                         />
                         <span className="sidebar__field-sep">:</span>
-                        <input 
-                          className="sidebar__field-input type" 
+                        <input
+                          className="sidebar__field-input type"
                           value={attr.type}
                           onChange={e => {
-                            const newAttrs = selectedClass.attributes.map(a => a.id === attr.id ? {...a, type: e.target.value} : a);
+                            const newAttrs = selectedClass.attributes.map(a => a.id === attr.id ? { ...a, type: e.target.value } : a);
                             onUpdateClass(selectedClass.id, { attributes: newAttrs });
                           }}
                         />
@@ -188,37 +188,37 @@ export function Sidebar({
                 <div className="sidebar__section">
                   <div className="sidebar__section-header">
                     <h3 className="sidebar__section-title">MÉTHODES</h3>
-                    <button onClick={handleAddMethod} className="btn-add-minimal"><Plus size={14}/></button>
+                    <button onClick={handleAddMethod} className="btn-add-minimal"><Plus size={14} /></button>
                   </div>
                   <div className="sidebar__list">
                     {selectedClass.methods.map((m) => (
                       <div key={m.id} className="sidebar__field-row">
-                        <select 
-                          value={m.visibility} 
+                        <select
+                          value={m.visibility}
                           className="sidebar__field-select"
                           onChange={e => {
                             const val = e.target.value as UMLMethod["visibility"];
-                            const newMethods = selectedClass.methods.map(met => met.id === m.id ? {...met, visibility: val} : met);
+                            const newMethods = selectedClass.methods.map(met => met.id === m.id ? { ...met, visibility: val } : met);
                             onUpdateClass(selectedClass.id, { methods: newMethods });
                           }}
                         >
                           <option value="public">+</option>
                           <option value="private">-</option>
                         </select>
-                        <input 
-                          className="sidebar__field-input name" 
+                        <input
+                          className="sidebar__field-input name"
                           value={m.name}
                           onChange={e => {
-                            const newMethods = selectedClass.methods.map(met => met.id === m.id ? {...met, name: e.target.value} : met);
+                            const newMethods = selectedClass.methods.map(met => met.id === m.id ? { ...met, name: e.target.value } : met);
                             onUpdateClass(selectedClass.id, { methods: newMethods });
                           }}
                         />
                         <span className="sidebar__field-sep">():</span>
-                        <input 
-                          className="sidebar__field-input type" 
+                        <input
+                          className="sidebar__field-input type"
                           value={m.returnType}
                           onChange={e => {
-                            const newMethods = selectedClass.methods.map(met => met.id === m.id ? {...met, returnType: e.target.value} : met);
+                            const newMethods = selectedClass.methods.map(met => met.id === m.id ? { ...met, returnType: e.target.value } : met);
                             onUpdateClass(selectedClass.id, { methods: newMethods });
                           }}
                         />
@@ -241,7 +241,7 @@ export function Sidebar({
                           <span className="rel-item__type">{rel.type}</span>
                           <span className="rel-item__dir">{rel.source === selectedClass.id ? "→ Cible" : "← Source"}</span>
                         </div>
-                        <input 
+                        <input
                           placeholder="Cardinalité..."
                           className="sidebar__field-input full"
                           value={rel.name ?? ""}

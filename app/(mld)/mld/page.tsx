@@ -1,102 +1,76 @@
 "use client";
-
 import { Suspense, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useProjectId } from "@/app/hooks/useProjectId";
-import { useDiagram } from "@/store/diagramStore";
+import { useMldData } from "@/app/hooks/useMldData";
 import MldNavbar from "@/app/components/mld/MldNavbar";
-import Canvas    from "@/components/mcd/canvas";
-import StatsBar  from "@/components/mcd/StatsBar";
+import MldLegend from "@/app/components/mld/MldLegend";
+import TablesGrid from "@/app/components/mld/TablesGrid";
+import RelationsSection from "@/app/components/mld/Relation";
+import { Table, Relation } from "@/data/mldData";
 
-// ✅ Types alignés avec ce que retourne /api/projects/[projectId]
-interface UmlAttribute {
-  id: string;
-  name: string;
-  type: string;
-}
-
-interface UmlClass {
-  id: string;
-  name: string;
-  position: { x: number; y: number };  // ✅ plus positionX/positionY
-  color: string;
-  attributes: UmlAttribute[];
-}
-
-interface UmlRelation {
-  id: string;
-  type: string;
-  name?: string;
-  source: string;      // ✅ plus sourceId
-  target: string;      // ✅ plus targetId
-  sourceCard?: string;
-  targetCard?: string;
-}
-
-function McdContent() {
+function MldContent() {
   const projectId = useProjectId();
   const router    = useRouter();
-  const { setProject, setDiagram } = useDiagram();
+  const { data, loading, error } = useMldData(projectId ?? "");
 
   useEffect(() => {
-    if (!projectId) {
-      router.replace("/dashboard");
-      return;
-    }
-
-    fetch(`/api/projects/${projectId}`)
-      .then(r => r.json())
-      .then(data => {
-        setProject(data.id, data.name);
-
-        const mcdEntities = data.classes.map((cls: UmlClass) => ({
-          id: cls.id,
-          name: cls.name.toUpperCase(),
-          x: cls.position?.x ?? 0,   // ✅ position.x
-          y: cls.position?.y ?? 0,   // ✅ position.y
-          color: cls.color || "#4f46e5",
-          attributes: cls.attributes.map((attr: UmlAttribute) => ({
-            id: attr.id,
-            name: attr.name,
-            type: attr.type,
-            isPrimary: attr.name.toLowerCase().includes("id"),
-          })),
-        }));
-
-        const mcdRelations = data.relations.map((rel: UmlRelation) => ({
-          id: rel.id,
-          name: rel.name || "ASSOCIATION",
-          type: "association",
-          sourceId: rel.source,        // ✅ source
-          targetId: rel.target,        // ✅ target
-          sourceCard: rel.sourceCard || "1,1",
-          targetCard: rel.targetCard || "0,N",
-        }));
-
-        setDiagram(mcdEntities, mcdRelations);
-      })
-      .catch(err => console.error("Erreur de chargement du projet:", err));
-  }, [projectId, router, setProject, setDiagram]);
+    if (!projectId) router.replace("/dashboard");
+  }, [projectId, router]);
 
   if (!projectId) return null;
 
+  // ✅ Convertir MldTable[] → Table[]
+  const tables: Table[] = (data?.tables ?? []).map((t) => ({
+    name: t.name,
+    meta: t.stereotype ?? undefined,
+    columns: (t.attributes ?? []).map((attr) => ({
+      name: attr.name,
+      type: attr.type,
+      badges: attr.isPrimary ? ["PK" as const] : [],
+    })),
+  }));
+
+  // ✅ Convertir MldRelation[] → Relation[]
+  const relations: Relation[] = (data?.relations ?? []).map((r) => ({
+    fromTable:  r.sourceId,
+    cardLeft:   r.sourceCard ?? "1,1",
+    cardRight:  r.targetCard ?? "0,N",
+    toTable:    r.targetId,
+    constraint: r.name ?? r.type,
+  }));
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", backgroundColor: "#f3f4f6" }}>
-      <MldNavbar activeTab="MCD" projectId={projectId} />
-      <div style={{ display: "flex", flex: 1, overflow: "hidden", marginTop: 48 }}>
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", position: "relative" }}>
-          <Canvas />
-          <StatsBar />
-        </div>
+    <main className="min-h-screen bg-[#f3f4f6]">
+      <MldNavbar activeTab="MLD" projectId={projectId} />
+      <MldLegend />
+
+      <div className="p-4">
+        {loading && (
+          <div className="text-gray-400 text-sm text-center mt-20">
+            Chargement du MLD…
+          </div>
+        )}
+        {error && (
+          <div className="text-red-500 text-sm text-center mt-20">
+            Erreur — projet introuvable.
+          </div>
+        )}
+        {!loading && !error && (
+          <>
+            <TablesGrid       tables={tables} />
+            <RelationsSection relations={relations} />
+          </>
+        )}
       </div>
-    </div>
+    </main>
   );
 }
 
-export default function McdPage() {
+export default function MldPage() {
   return (
-    <Suspense fallback={<div className="loading">Chargement du modèle...</div>}>
-      <McdContent />
+    <Suspense fallback={null}>
+      <MldContent />
     </Suspense>
   );
 }

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useCallback, useEffect } from 'react';
@@ -31,7 +30,7 @@ interface ApiClass {
   name: string;
   stereotype: string | null;
   color: string;
-  position: { x: number; y: number };  // ✅ déjà transformé par l'API
+  position: { x: number; y: number };
   attributes: ApiAttribute[];
   methods: ApiMethod[];
 }
@@ -42,8 +41,8 @@ interface ApiRelation {
   name: string | null;
   sourceLabel: string | null;
   targetLabel: string | null;
-  source: string;  // ✅ l'API retourne "source" (pas "sourceId")
-  target: string;  // ✅ l'API retourne "target" (pas "targetId")
+  source: string;
+  target: string;
 }
 
 export default function ClassePage() {
@@ -68,10 +67,7 @@ export default function ClassePage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!urlProjectId) {
-      console.warn("⚠️ projectId manquant dans l'URL");
-      return;
-    }
+    if (!urlProjectId) return;
 
     let cancelled = false;
 
@@ -81,6 +77,8 @@ export default function ClassePage() {
 
       try {
         const res = await fetch(`/api/projects/${urlProjectId}`);
+    
+        
 
         if (res.status === 401) throw new Error("Session expirée. Veuillez vous reconnecter.");
         if (res.status === 403) throw new Error("Vous n'avez pas accès à ce projet.");
@@ -91,12 +89,10 @@ export default function ClassePage() {
         }
 
         const project = await res.json();
+console.log("🔍 API response:", JSON.stringify(project, null, 2));
+if (cancelled) return;
         if (cancelled) return;
 
-        setProjectId(project.id);
-        setProjectName(project.name);
-
-        // ✅ L'API retourne déjà position: { x, y }
         const loadedClasses = (project.classes || []).map((cls: ApiClass) => ({
           id: cls.id,
           name: cls.name,
@@ -110,7 +106,6 @@ export default function ClassePage() {
           methods: cls.methods || [],
         }));
 
-        // ✅ L'API retourne déjà source/target
         const loadedRelations = (project.relations || []).map((rel: ApiRelation) => ({
           id: rel.id,
           type: rel.type,
@@ -121,7 +116,8 @@ export default function ClassePage() {
           target: rel.target,
         }));
 
-        loadProject(loadedClasses, loadedRelations);
+        loadProject(loadedClasses, loadedRelations, project.name, project.id);
+
       } catch (err) {
         if (cancelled) return;
         const msg = err instanceof Error ? err.message : "Erreur inconnue";
@@ -134,7 +130,8 @@ export default function ClassePage() {
 
     loadData();
     return () => { cancelled = true; };
-  }, [loadProject, setProjectId, setProjectName, urlProjectId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlProjectId]);
 
   const handleSaveClick = () => {
     if (projectId === null) {
@@ -159,6 +156,7 @@ export default function ClassePage() {
       setProjectName(name);
       setShowModal(false);
       setToast('Diagramme sauvegardé avec succès !');
+      router.replace(`/classe?projectId=${project.id}`);
     } catch (error) {
       console.error(error);
       setToast('Erreur de sauvegarde');
@@ -189,6 +187,7 @@ export default function ClassePage() {
   const handleUpdatePosition = useCallback((id: string, position: { x: number; y: number }) => {
     updateClass(id, { position });
   }, [updateClass]);
+  
 
   if (isLoading) {
     return (
@@ -268,7 +267,7 @@ export default function ClassePage() {
         onAddClass={addClass}
       />
 
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', minHeight: 0 }}>
         <Toolbar />
         <Canvas
           classes={classes}

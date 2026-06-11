@@ -8,13 +8,16 @@ type Props = {
 };
 
 export default function EntityCard({ entity, isSelected, onMouseDown }: Props) {
+  const x = isFinite(entity.x) ? entity.x : 0;
+  const y = isFinite(entity.y) ? entity.y : 0;
+
   return (
     <div
       onMouseDown={onMouseDown}
       style={{
         position: "absolute",
-        left: entity.x,
-        top: entity.y,
+        left: x,
+        top: y,
         minWidth: 160,
         background: "white",
         border: `2px solid ${isSelected ? "#4f46e5" : entity.color}`,

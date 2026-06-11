@@ -46,7 +46,7 @@ model User {
   firstName     String?
   lastName      String?
   email         String?   @unique
-  emailVerified DateTime?  // ✅ CHAMP AJOUTÉ POUR NEXTAUTH
+  emailVerified DateTime?  //  CHAMP AJOUTÉ POUR NEXTAUTH
   password      String?
   image         String?
   name          String?
@@ -55,6 +55,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   projects      Project[]
+  exports       UserExport []
 }
 
 model Project {
@@ -66,6 +67,7 @@ model Project {
   user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   classes   UmlClass[]
   relations UmlRelation[]
+  exports   UserExport []
 }
 
 model UmlClass {
@@ -111,4 +113,13 @@ model UmlRelation {
   targetId    String
   projectId   String
   project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+model UserExport  {
+  id        String   @id @default(cuid())
+  projectId String
+  format    String   // "png", "svg", "pdf"
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
